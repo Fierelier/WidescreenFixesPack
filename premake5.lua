@@ -417,6 +417,10 @@ project "NFSMostWanted.WidescreenFix"
    includedirs {"resources"}
    files { "source/%{prj.name}/*.fx", "source/%{prj.name}/*.ps", "source/%{prj.name}/*.rc" }
    defines { "IDR_POSTFX=201" }
+   filter "action:gmake2"
+      links { "gdi32", "stdc++exp" }
+      linkoptions { "-static-libgcc", "-static-libstdc++" }
+   filter {}
    setpaths("Z:/WFP/Games/Need For Speed/Need for Speed Most Wanted/", "speed.exe")
 project "NFSProStreet.FusionFix"
    --[[prebuildcommands {
