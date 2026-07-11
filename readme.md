@@ -23,7 +23,7 @@ Requirements:
 wine premake5.exe gmake
 ./patch-makefiles.sh
 cd build
-make -j$(nproc) -f NFSMostWanted.WidescreenFix.make
+AR=i686-w64-mingw32-ar CC=i686-w64-mingw32-gcc CXX=i686-w64-mingw32-g++ RESCOMP=i686-w64-mingw32-windres make -j$(nproc) -f NFSMostWanted.WidescreenFix.make
 ```
 
 # How to Report Crashes
