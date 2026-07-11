@@ -2,8 +2,22 @@
 
 #include <type_traits>
 #include <cstdint>
-#include "injector\injector.hpp"
+#include "injector/injector.hpp"
 #include <safetyhook.hpp>
+
+#if defined(_WIN64) || defined(__x86_64__)
+#error "usercall.hpp: these naked functions use hard-coded 32-bit stack offsets " \
+       "(esp+4, esp+8, ...) and the 32-bit calling convention. Build for a 32-bit " \
+       "(i686-w64-mingw32 / -m32) target."
+#endif
+
+// NOTE (GCC/MinGW naked functions + PIE):
+// MinGW-w64 targets are not position-independent by default, so this is normally a
+// non-issue on Windows. If you ever build/test this translation unit on a Linux/PIE
+// toolchain, add -fno-pie -no-pie: GCC's -fpie/-fPIE mode inserts a
+// "call __x86.get_pc_thunk.ax" prologue into every non-static function -- including
+// __attribute__((naked)) ones -- to set up the GOT base, which clobbers eax/ebx
+// before your hand-written asm ever runs.
 
 namespace usercall
 {
@@ -23,1003 +37,1073 @@ namespace usercall
     }
 
     // Single register (no stack)
-    __declspec(naked) inline void Call_A(void*, void*)
+    __attribute__((naked)) inline void Call_A(void*, void*)
     {
-        __asm
-        {
-            mov eax, [esp + 8]
-            mov ecx, [esp + 4]
-            call ecx
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "mov ecx, [esp + 4]\n\t"
+            "call ecx\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline void Call_C(void*, void*)
+    __attribute__((naked)) inline void Call_C(void*, void*)
     {
-        __asm
-        {
-            mov ecx, [esp + 8]
-            mov eax, [esp + 4]
-            call eax
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "mov ecx, [esp + 8]\n\t"
+            "mov eax, [esp + 4]\n\t"
+            "call eax\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline void Call_D(void*, void*)
+    __attribute__((naked)) inline void Call_D(void*, void*)
     {
-        __asm
-        {
-            mov edx, [esp + 8]
-            mov eax, [esp + 4]
-            call eax
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "mov edx, [esp + 8]\n\t"
+            "mov eax, [esp + 4]\n\t"
+            "call eax\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline void Call_S(void*, void*)
+    __attribute__((naked)) inline void Call_S(void*, void*)
     {
-        __asm
-        {
-            push esi
-            mov esi, [esp + 12]
-            mov eax, [esp + 8]
-            call eax
-            pop esi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push esi\n\t"
+            "mov esi, [esp + 12]\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "call eax\n\t"
+            "pop esi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline void Call_I(void*, void*)
+    __attribute__((naked)) inline void Call_I(void*, void*)
     {
-        __asm
-        {
-            push edi
-            mov edi, [esp + 12]
-            mov eax, [esp + 8]
-            call eax
-            pop edi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push edi\n\t"
+            "mov edi, [esp + 12]\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "call eax\n\t"
+            "pop edi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline void Call_B(void*, void*)
+    __attribute__((naked)) inline void Call_B(void*, void*)
     {
-        __asm
-        {
-            push ebx
-            mov ebx, [esp + 12]
-            mov eax, [esp + 8]
-            call eax
-            pop ebx
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push ebx\n\t"
+            "mov ebx, [esp + 12]\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "call eax\n\t"
+            "pop ebx\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
     // Two registers (no stack)
-    __declspec(naked) inline void Call_AC(void*, void*, void*)
+    __attribute__((naked)) inline void Call_AC(void*, void*, void*)
     {
-        __asm
-        {
-            mov ecx, [esp + 12]
-            mov eax, [esp + 8]
-            mov edx, [esp + 4]
-            call edx
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "mov ecx, [esp + 12]\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "mov edx, [esp + 4]\n\t"
+            "call edx\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline void Call_AD(void*, void*, void*)
+    __attribute__((naked)) inline void Call_AD(void*, void*, void*)
     {
-        __asm
-        {
-            mov edx, [esp + 12]
-            mov eax, [esp + 8]
-            mov ecx, [esp + 4]
-            call ecx
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "mov edx, [esp + 12]\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "mov ecx, [esp + 4]\n\t"
+            "call ecx\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline void Call_AS(void*, void*, void*)
+    __attribute__((naked)) inline void Call_AS(void*, void*, void*)
     {
-        __asm
-        {
-            push esi
-            mov esi, [esp + 16]
-            mov eax, [esp + 12]
-            mov ecx, [esp + 8]
-            call ecx
-            pop esi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push esi\n\t"
+            "mov esi, [esp + 16]\n\t"
+            "mov eax, [esp + 12]\n\t"
+            "mov ecx, [esp + 8]\n\t"
+            "call ecx\n\t"
+            "pop esi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline void Call_AI(void*, void*, void*)
+    __attribute__((naked)) inline void Call_AI(void*, void*, void*)
     {
-        __asm
-        {
-            push edi
-            mov edi, [esp + 16]
-            mov eax, [esp + 12]
-            mov ecx, [esp + 8]
-            call ecx
-            pop edi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push edi\n\t"
+            "mov edi, [esp + 16]\n\t"
+            "mov eax, [esp + 12]\n\t"
+            "mov ecx, [esp + 8]\n\t"
+            "call ecx\n\t"
+            "pop edi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline void Call_CD(void*, void*, void*)
+    __attribute__((naked)) inline void Call_CD(void*, void*, void*)
     {
-        __asm
-        {
-            mov edx, [esp + 12]
-            mov ecx, [esp + 8]
-            mov eax, [esp + 4]
-            call eax
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "mov edx, [esp + 12]\n\t"
+            "mov ecx, [esp + 8]\n\t"
+            "mov eax, [esp + 4]\n\t"
+            "call eax\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline void Call_CS(void*, void*, void*)
+    __attribute__((naked)) inline void Call_CS(void*, void*, void*)
     {
-        __asm
-        {
-            push esi
-            mov esi, [esp + 16]
-            mov ecx, [esp + 12]
-            mov eax, [esp + 8]
-            call eax
-            pop esi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push esi\n\t"
+            "mov esi, [esp + 16]\n\t"
+            "mov ecx, [esp + 12]\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "call eax\n\t"
+            "pop esi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline void Call_CI(void*, void*, void*)
+    __attribute__((naked)) inline void Call_CI(void*, void*, void*)
     {
-        __asm
-        {
-            push edi
-            mov edi, [esp + 16]
-            mov ecx, [esp + 12]
-            mov eax, [esp + 8]
-            call eax
-            pop edi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push edi\n\t"
+            "mov edi, [esp + 16]\n\t"
+            "mov ecx, [esp + 12]\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "call eax\n\t"
+            "pop edi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline void Call_DS(void*, void*, void*)
+    __attribute__((naked)) inline void Call_DS(void*, void*, void*)
     {
-        __asm
-        {
-            push esi
-            mov esi, [esp + 16]
-            mov edx, [esp + 12]
-            mov eax, [esp + 8]
-            call eax
-            pop esi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push esi\n\t"
+            "mov esi, [esp + 16]\n\t"
+            "mov edx, [esp + 12]\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "call eax\n\t"
+            "pop esi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline void Call_DI(void*, void*, void*)
+    __attribute__((naked)) inline void Call_DI(void*, void*, void*)
     {
-        __asm
-        {
-            push edi
-            mov edi, [esp + 16]
-            mov edx, [esp + 12]
-            mov eax, [esp + 8]
-            call eax
-            pop edi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push edi\n\t"
+            "mov edi, [esp + 16]\n\t"
+            "mov edx, [esp + 12]\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "call eax\n\t"
+            "pop edi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline void Call_IS(void*, void*, void*)
+    __attribute__((naked)) inline void Call_IS(void*, void*, void*)
     {
-        __asm
-        {
-            push edi
-            push esi
-            mov esi, [esp + 20]
-            mov edi, [esp + 16]
-            mov eax, [esp + 12]
-            call eax
-            pop esi
-            pop edi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push edi\n\t"
+            "push esi\n\t"
+            "mov esi, [esp + 20]\n\t"
+            "mov edi, [esp + 16]\n\t"
+            "mov eax, [esp + 12]\n\t"
+            "call eax\n\t"
+            "pop esi\n\t"
+            "pop edi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline void Call_SI(void*, void*, void*)
+    __attribute__((naked)) inline void Call_SI(void*, void*, void*)
     {
-        __asm
-        {
-            push edi
-            push esi
-            mov edi, [esp + 20]
-            mov esi, [esp + 16]
-            mov eax, [esp + 12]
-            call eax
-            pop esi
-            pop edi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push edi\n\t"
+            "push esi\n\t"
+            "mov edi, [esp + 20]\n\t"
+            "mov esi, [esp + 16]\n\t"
+            "mov eax, [esp + 12]\n\t"
+            "call eax\n\t"
+            "pop esi\n\t"
+            "pop edi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline void Call_DC(void*, void*, void*)
+    __attribute__((naked)) inline void Call_DC(void*, void*, void*)
     {
-        __asm
-        {
-            mov ecx, [esp + 12]
-            mov edx, [esp + 8]
-            mov eax, [esp + 4]
-            call eax
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "mov ecx, [esp + 12]\n\t"
+            "mov edx, [esp + 8]\n\t"
+            "mov eax, [esp + 4]\n\t"
+            "call eax\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
     // Three registers (no stack)
-    __declspec(naked) inline void Call_ACD(void*, void*, void*, void*)
+    __attribute__((naked)) inline void Call_ACD(void*, void*, void*, void*)
     {
-        __asm
-        {
-            push ebx
-            mov edx, [esp + 20]
-            mov ecx, [esp + 16]
-            mov eax, [esp + 12]
-            mov ebx, [esp + 8]
-            call ebx
-            pop ebx
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push ebx\n\t"
+            "mov edx, [esp + 20]\n\t"
+            "mov ecx, [esp + 16]\n\t"
+            "mov eax, [esp + 12]\n\t"
+            "mov ebx, [esp + 8]\n\t"
+            "call ebx\n\t"
+            "pop ebx\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline void Call_ACS(void*, void*, void*, void*)
+    __attribute__((naked)) inline void Call_ACS(void*, void*, void*, void*)
     {
-        __asm
-        {
-            push esi
-            mov esi, [esp + 20]
-            mov ecx, [esp + 16]
-            mov eax, [esp + 12]
-            mov edx, [esp + 8]
-            call edx
-            pop esi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push esi\n\t"
+            "mov esi, [esp + 20]\n\t"
+            "mov ecx, [esp + 16]\n\t"
+            "mov eax, [esp + 12]\n\t"
+            "mov edx, [esp + 8]\n\t"
+            "call edx\n\t"
+            "pop esi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline void Call_ADS(void*, void*, void*, void*)
+    __attribute__((naked)) inline void Call_ADS(void*, void*, void*, void*)
     {
-        __asm
-        {
-            push esi
-            mov esi, [esp + 20]
-            mov edx, [esp + 16]
-            mov eax, [esp + 12]
-            mov ecx, [esp + 8]
-            call ecx
-            pop esi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push esi\n\t"
+            "mov esi, [esp + 20]\n\t"
+            "mov edx, [esp + 16]\n\t"
+            "mov eax, [esp + 12]\n\t"
+            "mov ecx, [esp + 8]\n\t"
+            "call ecx\n\t"
+            "pop esi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline void Call_CDS(void*, void*, void*, void*)
+    __attribute__((naked)) inline void Call_CDS(void*, void*, void*, void*)
     {
-        __asm
-        {
-            push esi
-            mov esi, [esp + 20]
-            mov edx, [esp + 16]
-            mov ecx, [esp + 12]
-            mov eax, [esp + 8]
-            call eax
-            pop esi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push esi\n\t"
+            "mov esi, [esp + 20]\n\t"
+            "mov edx, [esp + 16]\n\t"
+            "mov ecx, [esp + 12]\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "call eax\n\t"
+            "pop esi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline void Call_DIS(void*, void*, void*, void*)
+    __attribute__((naked)) inline void Call_DIS(void*, void*, void*, void*)
     {
-        __asm
-        {
-            push edi
-            push esi
-            mov esi, [esp + 24]
-            mov edi, [esp + 20]
-            mov edx, [esp + 16]
-            mov eax, [esp + 12]
-            call eax
-            pop esi
-            pop edi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push edi\n\t"
+            "push esi\n\t"
+            "mov esi, [esp + 24]\n\t"
+            "mov edi, [esp + 20]\n\t"
+            "mov edx, [esp + 16]\n\t"
+            "mov eax, [esp + 12]\n\t"
+            "call eax\n\t"
+            "pop esi\n\t"
+            "pop edi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
     // Single register + stack
-    __declspec(naked) inline void Call_A_ST(void*, void*, void*)
+    __attribute__((naked)) inline void Call_A_ST(void*, void*, void*)
     {
-        __asm
-        {
-            mov eax, [esp + 8]
-            push dword ptr[esp + 12]
-            mov ecx, [esp + 8]
-            call ecx
-            add esp, 4
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "push dword ptr[esp + 12]\n\t"
+            "mov ecx, [esp + 8]\n\t"
+            "call ecx\n\t"
+            "add esp, 4\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline void Call_C_ST(void*, void*, void*)
+    __attribute__((naked)) inline void Call_C_ST(void*, void*, void*)
     {
-        __asm
-        {
-            mov ecx, [esp + 8]
-            push dword ptr[esp + 12]
-            mov eax, [esp + 8]
-            call eax
-            add esp, 4
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "mov ecx, [esp + 8]\n\t"
+            "push dword ptr[esp + 12]\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "call eax\n\t"
+            "add esp, 4\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline void Call_D_ST(void*, void*, void*)
+    __attribute__((naked)) inline void Call_D_ST(void*, void*, void*)
     {
-        __asm
-        {
-            mov edx, [esp + 8]
-            push dword ptr[esp + 12]
-            mov eax, [esp + 8]
-            call eax
-            add esp, 4
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "mov edx, [esp + 8]\n\t"
+            "push dword ptr[esp + 12]\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "call eax\n\t"
+            "add esp, 4\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline void Call_S_ST(void*, void*, void*)
+    __attribute__((naked)) inline void Call_S_ST(void*, void*, void*)
     {
-        __asm
-        {
-            push esi
-            mov esi, [esp + 12]
-            push dword ptr[esp + 16]
-            mov eax, [esp + 12]
-            call eax
-            add esp, 4
-            pop esi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push esi\n\t"
+            "mov esi, [esp + 12]\n\t"
+            "push dword ptr[esp + 16]\n\t"
+            "mov eax, [esp + 12]\n\t"
+            "call eax\n\t"
+            "add esp, 4\n\t"
+            "pop esi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline void Call_I_ST(void*, void*, void*)
+    __attribute__((naked)) inline void Call_I_ST(void*, void*, void*)
     {
-        __asm
-        {
-            push edi
-            mov edi, [esp + 12]
-            push dword ptr[esp + 16]
-            mov eax, [esp + 12]
-            call eax
-            add esp, 4
-            pop edi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push edi\n\t"
+            "mov edi, [esp + 12]\n\t"
+            "push dword ptr[esp + 16]\n\t"
+            "mov eax, [esp + 12]\n\t"
+            "call eax\n\t"
+            "add esp, 4\n\t"
+            "pop edi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
     // Two registers + stack
-    __declspec(naked) inline void Call_AC_ST(void*, void*, void*, void*)
+    __attribute__((naked)) inline void Call_AC_ST(void*, void*, void*, void*)
     {
-        __asm
-        {
-            mov ecx, [esp + 12]
-            mov eax, [esp + 8]
-            push dword ptr[esp + 16]
-            mov edx, [esp + 8]
-            call edx
-            add esp, 4
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "mov ecx, [esp + 12]\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "push dword ptr[esp + 16]\n\t"
+            "mov edx, [esp + 8]\n\t"
+            "call edx\n\t"
+            "add esp, 4\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline void Call_AD_ST(void*, void*, void*, void*)
+    __attribute__((naked)) inline void Call_AD_ST(void*, void*, void*, void*)
     {
-        __asm
-        {
-            mov edx, [esp + 12]
-            mov eax, [esp + 8]
-            push dword ptr[esp + 16]
-            mov ecx, [esp + 8]
-            call ecx
-            add esp, 4
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "mov edx, [esp + 12]\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "push dword ptr[esp + 16]\n\t"
+            "mov ecx, [esp + 8]\n\t"
+            "call ecx\n\t"
+            "add esp, 4\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline void Call_CD_ST(void*, void*, void*, void*)
+    __attribute__((naked)) inline void Call_CD_ST(void*, void*, void*, void*)
     {
-        __asm
-        {
-            mov edx, [esp + 12]
-            mov ecx, [esp + 8]
-            push dword ptr[esp + 16]
-            mov eax, [esp + 8]
-            call eax
-            add esp, 4
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "mov edx, [esp + 12]\n\t"
+            "mov ecx, [esp + 8]\n\t"
+            "push dword ptr[esp + 16]\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "call eax\n\t"
+            "add esp, 4\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline void Call_DI_ST(void*, void*, void*, void*)
+    __attribute__((naked)) inline void Call_DI_ST(void*, void*, void*, void*)
     {
-        __asm
-        {
-            push edi
-            mov edi, [esp + 16]
-            mov edx, [esp + 12]
-            push dword ptr[esp + 20]
-            mov eax, [esp + 12]
-            call eax
-            add esp, 4
-            pop edi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push edi\n\t"
+            "mov edi, [esp + 16]\n\t"
+            "mov edx, [esp + 12]\n\t"
+            "push dword ptr[esp + 20]\n\t"
+            "mov eax, [esp + 12]\n\t"
+            "call eax\n\t"
+            "add esp, 4\n\t"
+            "pop edi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline void Call_IS_ST(void*, void*, void*, void*)
+    __attribute__((naked)) inline void Call_IS_ST(void*, void*, void*, void*)
     {
-        __asm
-        {
-            push edi
-            push esi
-            mov esi, [esp + 20]
-            mov edi, [esp + 16]
-            push dword ptr[esp + 24]
-            mov eax, [esp + 16]
-            call eax
-            add esp, 4
-            pop esi
-            pop edi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push edi\n\t"
+            "push esi\n\t"
+            "mov esi, [esp + 20]\n\t"
+            "mov edi, [esp + 16]\n\t"
+            "push dword ptr[esp + 24]\n\t"
+            "mov eax, [esp + 16]\n\t"
+            "call eax\n\t"
+            "add esp, 4\n\t"
+            "pop esi\n\t"
+            "pop edi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
     // Three registers + stack
-    __declspec(naked) inline void Call_ADS_ST(void*, void*, void*, void*, void*)
+    __attribute__((naked)) inline void Call_ADS_ST(void*, void*, void*, void*, void*)
     {
-        __asm
-        {
-            push esi
-            mov esi, [esp + 20]
-            mov edx, [esp + 16]
-            mov eax, [esp + 12]
-            push dword ptr[esp + 24]
-            mov ecx, [esp + 12]
-            call ecx
-            add esp, 4
-            pop esi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push esi\n\t"
+            "mov esi, [esp + 20]\n\t"
+            "mov edx, [esp + 16]\n\t"
+            "mov eax, [esp + 12]\n\t"
+            "push dword ptr[esp + 24]\n\t"
+            "mov ecx, [esp + 12]\n\t"
+            "call ecx\n\t"
+            "add esp, 4\n\t"
+            "pop esi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline void Call_AIS_ST(void*, void*, void*, void*, void*)
+    __attribute__((naked)) inline void Call_AIS_ST(void*, void*, void*, void*, void*)
     {
-        __asm
-        {
-            push edi
-            push esi
-            mov esi, [esp + 24]
-            mov edi, [esp + 20]
-            mov eax, [esp + 16]
-            push dword ptr[esp + 28]
-            mov ecx, [esp + 16]
-            call ecx
-            add esp, 4
-            pop esi
-            pop edi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push edi\n\t"
+            "push esi\n\t"
+            "mov esi, [esp + 24]\n\t"
+            "mov edi, [esp + 20]\n\t"
+            "mov eax, [esp + 16]\n\t"
+            "push dword ptr[esp + 28]\n\t"
+            "mov ecx, [esp + 16]\n\t"
+            "call ecx\n\t"
+            "add esp, 4\n\t"
+            "pop esi\n\t"
+            "pop edi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
     // Single register (no stack)
-    __declspec(naked) inline uintptr_t RetCall_A(void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_A(void*, void*)
     {
-        __asm
-        {
-            mov eax, [esp + 8]
-            mov ecx, [esp + 4]
-            call ecx
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "mov ecx, [esp + 4]\n\t"
+            "call ecx\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline uintptr_t RetCall_C(void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_C(void*, void*)
     {
-        __asm
-        {
-            mov ecx, [esp + 8]
-            mov eax, [esp + 4]
-            call eax
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "mov ecx, [esp + 8]\n\t"
+            "mov eax, [esp + 4]\n\t"
+            "call eax\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline uintptr_t RetCall_D(void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_D(void*, void*)
     {
-        __asm
-        {
-            mov edx, [esp + 8]
-            mov eax, [esp + 4]
-            call eax
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "mov edx, [esp + 8]\n\t"
+            "mov eax, [esp + 4]\n\t"
+            "call eax\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline uintptr_t RetCall_S(void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_S(void*, void*)
     {
-        __asm
-        {
-            push esi
-            mov esi, [esp + 12]
-            mov eax, [esp + 8]
-            call eax
-            pop esi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push esi\n\t"
+            "mov esi, [esp + 12]\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "call eax\n\t"
+            "pop esi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline uintptr_t RetCall_I(void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_I(void*, void*)
     {
-        __asm
-        {
-            push edi
-            mov edi, [esp + 12]
-            mov eax, [esp + 8]
-            call eax
-            pop edi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push edi\n\t"
+            "mov edi, [esp + 12]\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "call eax\n\t"
+            "pop edi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline uintptr_t RetCall_B(void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_B(void*, void*)
     {
-        __asm
-        {
-            push ebx
-            mov ebx, [esp + 12]
-            mov eax, [esp + 8]
-            call eax
-            pop ebx
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push ebx\n\t"
+            "mov ebx, [esp + 12]\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "call eax\n\t"
+            "pop ebx\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
     // Two registers (no stack)
-    __declspec(naked) inline uintptr_t RetCall_AC(void*, void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_AC(void*, void*, void*)
     {
-        __asm
-        {
-            mov ecx, [esp + 12]
-            mov eax, [esp + 8]
-            mov edx, [esp + 4]
-            call edx
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "mov ecx, [esp + 12]\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "mov edx, [esp + 4]\n\t"
+            "call edx\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline uintptr_t RetCall_AD(void*, void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_AD(void*, void*, void*)
     {
-        __asm
-        {
-            mov edx, [esp + 12]
-            mov eax, [esp + 8]
-            mov ecx, [esp + 4]
-            call ecx
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "mov edx, [esp + 12]\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "mov ecx, [esp + 4]\n\t"
+            "call ecx\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline uintptr_t RetCall_AS(void*, void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_AS(void*, void*, void*)
     {
-        __asm
-        {
-            push esi
-            mov esi, [esp + 16]
-            mov eax, [esp + 12]
-            mov ecx, [esp + 8]
-            call ecx
-            pop esi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push esi\n\t"
+            "mov esi, [esp + 16]\n\t"
+            "mov eax, [esp + 12]\n\t"
+            "mov ecx, [esp + 8]\n\t"
+            "call ecx\n\t"
+            "pop esi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline uintptr_t RetCall_AI(void*, void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_AI(void*, void*, void*)
     {
-        __asm
-        {
-            push edi
-            mov edi, [esp + 16]
-            mov eax, [esp + 12]
-            mov ecx, [esp + 8]
-            call ecx
-            pop edi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push edi\n\t"
+            "mov edi, [esp + 16]\n\t"
+            "mov eax, [esp + 12]\n\t"
+            "mov ecx, [esp + 8]\n\t"
+            "call ecx\n\t"
+            "pop edi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline uintptr_t RetCall_CD(void*, void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_CD(void*, void*, void*)
     {
-        __asm
-        {
-            mov edx, [esp + 12]
-            mov ecx, [esp + 8]
-            mov eax, [esp + 4]
-            call eax
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "mov edx, [esp + 12]\n\t"
+            "mov ecx, [esp + 8]\n\t"
+            "mov eax, [esp + 4]\n\t"
+            "call eax\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline uintptr_t RetCall_CS(void*, void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_CS(void*, void*, void*)
     {
-        __asm
-        {
-            push esi
-            mov esi, [esp + 16]
-            mov ecx, [esp + 12]
-            mov eax, [esp + 8]
-            call eax
-            pop esi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push esi\n\t"
+            "mov esi, [esp + 16]\n\t"
+            "mov ecx, [esp + 12]\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "call eax\n\t"
+            "pop esi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline uintptr_t RetCall_CI(void*, void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_CI(void*, void*, void*)
     {
-        __asm
-        {
-            push edi
-            mov edi, [esp + 16]
-            mov ecx, [esp + 12]
-            mov eax, [esp + 8]
-            call eax
-            pop edi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push edi\n\t"
+            "mov edi, [esp + 16]\n\t"
+            "mov ecx, [esp + 12]\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "call eax\n\t"
+            "pop edi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline uintptr_t RetCall_DS(void*, void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_DS(void*, void*, void*)
     {
-        __asm
-        {
-            push esi
-            mov esi, [esp + 16]
-            mov edx, [esp + 12]
-            mov eax, [esp + 8]
-            call eax
-            pop esi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push esi\n\t"
+            "mov esi, [esp + 16]\n\t"
+            "mov edx, [esp + 12]\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "call eax\n\t"
+            "pop esi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline uintptr_t RetCall_DI(void*, void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_DI(void*, void*, void*)
     {
-        __asm
-        {
-            push edi
-            mov edi, [esp + 16]
-            mov edx, [esp + 12]
-            mov eax, [esp + 8]
-            call eax
-            pop edi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push edi\n\t"
+            "mov edi, [esp + 16]\n\t"
+            "mov edx, [esp + 12]\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "call eax\n\t"
+            "pop edi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline uintptr_t RetCall_IS(void*, void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_IS(void*, void*, void*)
     {
-        __asm
-        {
-            push edi
-            push esi
-            mov esi, [esp + 20]
-            mov edi, [esp + 16]
-            mov eax, [esp + 12]
-            call eax
-            pop esi
-            pop edi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push edi\n\t"
+            "push esi\n\t"
+            "mov esi, [esp + 20]\n\t"
+            "mov edi, [esp + 16]\n\t"
+            "mov eax, [esp + 12]\n\t"
+            "call eax\n\t"
+            "pop esi\n\t"
+            "pop edi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline uintptr_t RetCall_SI(void*, void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_SI(void*, void*, void*)
     {
-        __asm
-        {
-            push edi
-            push esi
-            mov edi, [esp + 20]
-            mov esi, [esp + 16]
-            mov eax, [esp + 12]
-            call eax
-            pop esi
-            pop edi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push edi\n\t"
+            "push esi\n\t"
+            "mov edi, [esp + 20]\n\t"
+            "mov esi, [esp + 16]\n\t"
+            "mov eax, [esp + 12]\n\t"
+            "call eax\n\t"
+            "pop esi\n\t"
+            "pop edi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline uintptr_t RetCall_DC(void*, void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_DC(void*, void*, void*)
     {
-        __asm
-        {
-            mov ecx, [esp + 12]
-            mov edx, [esp + 8]
-            mov eax, [esp + 4]
-            call eax
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "mov ecx, [esp + 12]\n\t"
+            "mov edx, [esp + 8]\n\t"
+            "mov eax, [esp + 4]\n\t"
+            "call eax\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
     // Three registers (no stack)
-    __declspec(naked) inline uintptr_t RetCall_ACD(void*, void*, void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_ACD(void*, void*, void*, void*)
     {
-        __asm
-        {
-            push ebx
-            mov edx, [esp + 20]
-            mov ecx, [esp + 16]
-            mov eax, [esp + 12]
-            mov ebx, [esp + 8]
-            call ebx
-            pop ebx
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push ebx\n\t"
+            "mov edx, [esp + 20]\n\t"
+            "mov ecx, [esp + 16]\n\t"
+            "mov eax, [esp + 12]\n\t"
+            "mov ebx, [esp + 8]\n\t"
+            "call ebx\n\t"
+            "pop ebx\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline uintptr_t RetCall_ACS(void*, void*, void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_ACS(void*, void*, void*, void*)
     {
-        __asm
-        {
-            push esi
-            mov esi, [esp + 20]
-            mov ecx, [esp + 16]
-            mov eax, [esp + 12]
-            mov edx, [esp + 8]
-            call edx
-            pop esi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push esi\n\t"
+            "mov esi, [esp + 20]\n\t"
+            "mov ecx, [esp + 16]\n\t"
+            "mov eax, [esp + 12]\n\t"
+            "mov edx, [esp + 8]\n\t"
+            "call edx\n\t"
+            "pop esi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline uintptr_t RetCall_ADS(void*, void*, void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_ADS(void*, void*, void*, void*)
     {
-        __asm
-        {
-            push esi
-            mov esi, [esp + 20]
-            mov edx, [esp + 16]
-            mov eax, [esp + 12]
-            mov ecx, [esp + 8]
-            call ecx
-            pop esi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push esi\n\t"
+            "mov esi, [esp + 20]\n\t"
+            "mov edx, [esp + 16]\n\t"
+            "mov eax, [esp + 12]\n\t"
+            "mov ecx, [esp + 8]\n\t"
+            "call ecx\n\t"
+            "pop esi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline uintptr_t RetCall_CDS(void*, void*, void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_CDS(void*, void*, void*, void*)
     {
-        __asm
-        {
-            push esi
-            mov esi, [esp + 20]
-            mov edx, [esp + 16]
-            mov ecx, [esp + 12]
-            mov eax, [esp + 8]
-            call eax
-            pop esi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push esi\n\t"
+            "mov esi, [esp + 20]\n\t"
+            "mov edx, [esp + 16]\n\t"
+            "mov ecx, [esp + 12]\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "call eax\n\t"
+            "pop esi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline uintptr_t RetCall_DIS(void*, void*, void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_DIS(void*, void*, void*, void*)
     {
-        __asm
-        {
-            push edi
-            push esi
-            mov esi, [esp + 24]
-            mov edi, [esp + 20]
-            mov edx, [esp + 16]
-            mov eax, [esp + 12]
-            call eax
-            pop esi
-            pop edi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push edi\n\t"
+            "push esi\n\t"
+            "mov esi, [esp + 24]\n\t"
+            "mov edi, [esp + 20]\n\t"
+            "mov edx, [esp + 16]\n\t"
+            "mov eax, [esp + 12]\n\t"
+            "call eax\n\t"
+            "pop esi\n\t"
+            "pop edi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
     // Single register + stack
-    __declspec(naked) inline uintptr_t RetCall_A_ST(void*, void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_A_ST(void*, void*, void*)
     {
-        __asm
-        {
-            mov eax, [esp + 8]
-            push dword ptr[esp + 12]
-            mov ecx, [esp + 8]
-            call ecx
-            add esp, 4
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "push dword ptr[esp + 12]\n\t"
+            "mov ecx, [esp + 8]\n\t"
+            "call ecx\n\t"
+            "add esp, 4\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline uintptr_t RetCall_C_ST(void*, void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_C_ST(void*, void*, void*)
     {
-        __asm
-        {
-            mov ecx, [esp + 8]
-            push dword ptr[esp + 12]
-            mov eax, [esp + 8]
-            call eax
-            add esp, 4
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "mov ecx, [esp + 8]\n\t"
+            "push dword ptr[esp + 12]\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "call eax\n\t"
+            "add esp, 4\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline uintptr_t RetCall_D_ST(void*, void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_D_ST(void*, void*, void*)
     {
-        __asm
-        {
-            mov edx, [esp + 8]
-            push dword ptr[esp + 12]
-            mov eax, [esp + 8]
-            call eax
-            add esp, 4
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "mov edx, [esp + 8]\n\t"
+            "push dword ptr[esp + 12]\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "call eax\n\t"
+            "add esp, 4\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline uintptr_t RetCall_S_ST(void*, void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_S_ST(void*, void*, void*)
     {
-        __asm
-        {
-            push esi
-            mov esi, [esp + 12]
-            push dword ptr[esp + 16]
-            mov eax, [esp + 12]
-            call eax
-            add esp, 4
-            pop esi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push esi\n\t"
+            "mov esi, [esp + 12]\n\t"
+            "push dword ptr[esp + 16]\n\t"
+            "mov eax, [esp + 12]\n\t"
+            "call eax\n\t"
+            "add esp, 4\n\t"
+            "pop esi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline uintptr_t RetCall_I_ST(void*, void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_I_ST(void*, void*, void*)
     {
-        __asm
-        {
-            push edi
-            mov edi, [esp + 12]
-            push dword ptr[esp + 16]
-            mov eax, [esp + 12]
-            call eax
-            add esp, 4
-            pop edi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push edi\n\t"
+            "mov edi, [esp + 12]\n\t"
+            "push dword ptr[esp + 16]\n\t"
+            "mov eax, [esp + 12]\n\t"
+            "call eax\n\t"
+            "add esp, 4\n\t"
+            "pop edi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
     // Two registers + stack
-    __declspec(naked) inline uintptr_t RetCall_AC_ST(void*, void*, void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_AC_ST(void*, void*, void*, void*)
     {
-        __asm
-        {
-            mov ecx, [esp + 12]
-            mov eax, [esp + 8]
-            push dword ptr[esp + 16]
-            mov edx, [esp + 8]
-            call edx
-            add esp, 4
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "mov ecx, [esp + 12]\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "push dword ptr[esp + 16]\n\t"
+            "mov edx, [esp + 8]\n\t"
+            "call edx\n\t"
+            "add esp, 4\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline uintptr_t RetCall_AD_ST(void*, void*, void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_AD_ST(void*, void*, void*, void*)
     {
-        __asm
-        {
-            mov edx, [esp + 12]
-            mov eax, [esp + 8]
-            push dword ptr[esp + 16]
-            mov ecx, [esp + 8]
-            call ecx
-            add esp, 4
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "mov edx, [esp + 12]\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "push dword ptr[esp + 16]\n\t"
+            "mov ecx, [esp + 8]\n\t"
+            "call ecx\n\t"
+            "add esp, 4\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline uintptr_t RetCall_CD_ST(void*, void*, void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_CD_ST(void*, void*, void*, void*)
     {
-        __asm
-        {
-            mov edx, [esp + 12]
-            mov ecx, [esp + 8]
-            push dword ptr[esp + 16]
-            mov eax, [esp + 8]
-            call eax
-            add esp, 4
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "mov edx, [esp + 12]\n\t"
+            "mov ecx, [esp + 8]\n\t"
+            "push dword ptr[esp + 16]\n\t"
+            "mov eax, [esp + 8]\n\t"
+            "call eax\n\t"
+            "add esp, 4\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline uintptr_t RetCall_DI_ST(void*, void*, void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_DI_ST(void*, void*, void*, void*)
     {
-        __asm
-        {
-            push edi
-            mov edi, [esp + 16]
-            mov edx, [esp + 12]
-            push dword ptr[esp + 20]
-            mov eax, [esp + 12]
-            call eax
-            add esp, 4
-            pop edi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push edi\n\t"
+            "mov edi, [esp + 16]\n\t"
+            "mov edx, [esp + 12]\n\t"
+            "push dword ptr[esp + 20]\n\t"
+            "mov eax, [esp + 12]\n\t"
+            "call eax\n\t"
+            "add esp, 4\n\t"
+            "pop edi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline uintptr_t RetCall_IS_ST(void*, void*, void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_IS_ST(void*, void*, void*, void*)
     {
-        __asm
-        {
-            push edi
-            push esi
-            mov esi, [esp + 20]
-            mov edi, [esp + 16]
-            push dword ptr[esp + 24]
-            mov eax, [esp + 16]
-            call eax
-            add esp, 4
-            pop esi
-            pop edi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push edi\n\t"
+            "push esi\n\t"
+            "mov esi, [esp + 20]\n\t"
+            "mov edi, [esp + 16]\n\t"
+            "push dword ptr[esp + 24]\n\t"
+            "mov eax, [esp + 16]\n\t"
+            "call eax\n\t"
+            "add esp, 4\n\t"
+            "pop esi\n\t"
+            "pop edi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
     // Three registers + stack
-    __declspec(naked) inline uintptr_t RetCall_ADS_ST(void*, void*, void*, void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_ADS_ST(void*, void*, void*, void*, void*)
     {
-        __asm
-        {
-            push esi
-            mov esi, [esp + 20]
-            mov edx, [esp + 16]
-            mov eax, [esp + 12]
-            push dword ptr[esp + 24]
-            mov ecx, [esp + 12]
-            call ecx
-            add esp, 4
-            pop esi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push esi\n\t"
+            "mov esi, [esp + 20]\n\t"
+            "mov edx, [esp + 16]\n\t"
+            "mov eax, [esp + 12]\n\t"
+            "push dword ptr[esp + 24]\n\t"
+            "mov ecx, [esp + 12]\n\t"
+            "call ecx\n\t"
+            "add esp, 4\n\t"
+            "pop esi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
-    __declspec(naked) inline uintptr_t RetCall_AIS_ST(void*, void*, void*, void*, void*)
+    __attribute__((naked)) inline uintptr_t RetCall_AIS_ST(void*, void*, void*, void*, void*)
     {
-        __asm
-        {
-            push edi
-            push esi
-            mov esi, [esp + 24]
-            mov edi, [esp + 20]
-            mov eax, [esp + 16]
-            push dword ptr[esp + 28]
-            mov ecx, [esp + 16]
-            call ecx
-            add esp, 4
-            pop esi
-            pop edi
-            ret
-        }
+        __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "push edi\n\t"
+            "push esi\n\t"
+            "mov esi, [esp + 24]\n\t"
+            "mov edi, [esp + 20]\n\t"
+            "mov eax, [esp + 16]\n\t"
+            "push dword ptr[esp + 28]\n\t"
+            "mov ecx, [esp + 16]\n\t"
+            "call ecx\n\t"
+            "add esp, 4\n\t"
+            "pop esi\n\t"
+            "pop edi\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+        );
     }
 
     // 1 arg (register only)

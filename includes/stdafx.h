@@ -18,11 +18,11 @@
 #include <future>
 #include <shlobj.h>
 #include "IniReader.h"
-#include "injector\injector.hpp"
-#include "injector\calling.hpp"
-#include "injector\hooking.hpp"
-#include "injector\assembly.hpp"
-#include "injector\utility.hpp"
+#include "injector/injector.hpp"
+#include "injector/calling.hpp"
+#include "injector/hooking.hpp"
+#include "injector/assembly.hpp"
+#include "injector/utility.hpp"
 #include "Hooking.Patterns.h"
 #include "callbacks.h"
 #include "log.h"
@@ -608,7 +608,7 @@ public:
                 }
 
                 if (required > 0)
-                    std::memcpy(lpData, bytes.data(), required);
+                    memcpy(lpData, bytes.data(), required);
 
                 *lpcbData = required;
 
@@ -699,7 +699,7 @@ public:
                 for (const auto& p : parts)
                 {
                     if (!p.empty())
-                        std::memcpy(dst, p.data(), p.length());
+                        memcpy(dst, p.data(), p.length());
                     dst += p.length();
                     *dst++ = '\0';
                 }
@@ -757,7 +757,7 @@ public:
                 }
 
                 if (!readValue.empty())
-                    std::memcpy(lpData, readValue.data(), readValue.length());
+                    memcpy(lpData, readValue.data(), readValue.length());
                 lpData[readValue.length()] = '\0';
 
                 *lpcbData = required;
@@ -824,7 +824,7 @@ public:
                         if (!str.empty())
                             str += ',';
                         str.append(p);
-                        p += std::strlen(p) + 1;
+                        p += strlen(p) + 1;
                     }
                 }
                 RegistryReader.WriteString(section, ValueName, str);

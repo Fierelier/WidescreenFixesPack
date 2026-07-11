@@ -53,7 +53,7 @@ public:
                                     {
                                         originalPtrs[std::get<0>(inputs)] = std::async(std::launch::deferred, [&]() -> void* { return *pAddress; });
                                         originalPtrs[std::get<0>(inputs)].wait();
-                                        *pAddress = std::get<1>(inputs);
+                                        *pAddress = (void*)std::get<1>(inputs);
                                     }
                                 } catch (...) {}
                             }
@@ -62,7 +62,7 @@ public:
                             {
                                 originalPtrs[std::get<0>(inputs)] = std::async(std::launch::deferred, [&]() -> void* { return *pAddress; });
                                 originalPtrs[std::get<0>(inputs)].wait();
-                                *pAddress = std::get<1>(inputs);
+                                *pAddress = (void*)std::get<1>(inputs);
                             }
                         } (), ...);
                         VirtualProtect(pAddress, sizeof(void*), dwProtect[0], &dwProtect[1]);
@@ -82,7 +82,7 @@ public:
                             {
                                 originalPtrs[std::get<0>(inputs)] = std::async(std::launch::deferred, [&]() -> void* { return *pAddress; });
                                 originalPtrs[std::get<0>(inputs)].wait();
-                                *pAddress = std::get<1>(inputs);
+                                *pAddress = (void*)std::get<1>(inputs);
                             }
                         } (), ...);
                         VirtualProtect(pAddress, sizeof(void*), dwProtect[0], &dwProtect[1]);
@@ -141,7 +141,7 @@ public:
                                                 *pAddress = value;
                                                 VirtualProtect(pAddress, sizeof(void*), dwProtect[0], &dwProtect[1]);
                                                 return r;
-                                            }, pAddress, std::get<1>(inputs), (PVOID)instance);
+                                            }, pAddress, (void*)std::get<1>(inputs), (PVOID)instance);
                                         }
                                     } catch (...) {}
                                 }
@@ -163,7 +163,7 @@ public:
                                         *pAddress = value;
                                         VirtualProtect(pAddress, sizeof(void*), dwProtect[0], &dwProtect[1]);
                                         return r;
-                                    }, pAddress, std::get<1>(inputs), (PVOID)instance);
+                                    }, pAddress, (void*)std::get<1>(inputs), (PVOID)instance);
                                 }
                             } (), ...);
                             VirtualProtect(pAddress, sizeof(void*), dwProtect[0], &dwProtect[1]);
@@ -207,7 +207,7 @@ public:
                         {
                             originalPtrs[std::get<0>(inputs)] = std::async(std::launch::deferred, [&]() -> void* { return *pAddress; });
                             originalPtrs[std::get<0>(inputs)].wait();
-                            *pAddress = std::get<1>(inputs);
+                            *pAddress = (void*)std::get<1>(inputs);
                         }
                     } (), ...);
                     VirtualProtect(pAddress, sizeof(void*), dwProtect[0], &dwProtect[1]);

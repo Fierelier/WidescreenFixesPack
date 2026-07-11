@@ -1,5 +1,5 @@
 #pragma once
-#include <Windows.h>
+#include <windows.h>
 #include <functional>
 #include <string>
 #include <string_view>
@@ -166,37 +166,36 @@ private:
         bool executed;
     };
 
-    static inline auto& GetOnModuleLoadCallbackList()
+    static inline std::map<std::wstring, std::function<void()>, Comparator>& GetOnModuleLoadCallbackList()
     {
         static std::map<std::wstring, std::function<void()>, Comparator> onModuleLoad;
         return onModuleLoad;
     }
 
-    static inline auto& GetOnModuleUnloadCallbackList()
+    static inline std::map<std::wstring, std::function<void()>, Comparator>& GetOnModuleUnloadCallbackList()
     {
         static std::map<std::wstring, std::function<void()>, Comparator> onModuleUnload;
         return onModuleUnload;
     }
 
-    static inline auto& GetOnAnyModuleLoadCallbackList()
+    static inline std::vector<std::function<void(HMODULE)>>& GetOnAnyModuleLoadCallbackList()
     {
         static std::vector<std::function<void(HMODULE)>> onAnyModuleLoad;
         return onAnyModuleLoad;
     }
 
-    static inline auto& GetOnAnyModuleUnloadCallbackList()
+    static inline std::vector<std::function<void(std::wstring_view)>>& GetOnAnyModuleUnloadCallbackList()
     {
         static std::vector<std::function<void(std::wstring_view)>> onAnyModuleUnload;
         return onAnyModuleUnload;
     }
 
-    static inline auto& GetCallbackParamsList()
+    static inline std::vector<ThreadParams>& GetCallbackParamsList()
     {
         static std::vector<ThreadParams> callbackParams;
         return callbackParams;
     }
 
-    typedef NTSTATUS(NTAPI* _LdrRegisterDllNotification) (ULONG, PVOID, PVOID, PVOID);
     typedef NTSTATUS(NTAPI* _LdrUnregisterDllNotification) (PVOID);
 
     typedef struct _LDR_DLL_LOADED_NOTIFICATION_DATA
@@ -213,6 +212,15 @@ private:
         LDR_DLL_LOADED_NOTIFICATION_DATA Loaded;
         LDR_DLL_UNLOADED_NOTIFICATION_DATA Unloaded;
     } LDR_DLL_NOTIFICATION_DATA, *PLDR_DLL_NOTIFICATION_DATA;
+
+    typedef VOID(CALLBACK* PLDR_DLL_NOTIFICATION_FUNCTION)
+    (
+        ULONG NotificationReason,
+        PLDR_DLL_NOTIFICATION_DATA NotificationData,
+        PVOID Context
+    );
+
+    typedef NTSTATUS(NTAPI* _LdrRegisterDllNotification) (ULONG, PLDR_DLL_NOTIFICATION_FUNCTION, PVOID, PVOID*);
 
     typedef NTSTATUS(NTAPI* PLDR_MANIFEST_PROBER_ROUTINE)
     (
@@ -274,7 +282,7 @@ private:
         act.dwFlags = ACTCTX_FLAG_RESOURCE_NAME_VALID | ACTCTX_FLAG_HMODULE_VALID;
         act.lpSource = FullDllPath;
         act.hModule = DllBase;
-        act.lpResourceName = ISOLATIONAWARE_MANIFEST_RESOURCE_ID;
+        act.lpResourceName = (LPCWSTR)ISOLATIONAWARE_MANIFEST_RESOURCE_ID;
 
         // Reset pointer, crucial for x64 version
         *ActivationContext = 0;
@@ -315,8 +323,29 @@ private:
             LdrUnregisterDllNotification(cookie);
     }
 
+    template<typename T>
+    struct function_traits;
+
+    template<typename R, typename... Args>
+    struct function_traits<R(*)(Args...)>
+    {
+        using result_type = R;
+    };
+
+#if !defined(_WIN64)
+    // On 32-bit, __stdcall is a distinct part of the function type,
+    // so it needs its own specialization. On 64-bit, __stdcall
+    // collapses to the default convention, which would make this
+    // a duplicate of the specialization above.
+    template<typename R, typename... Args>
+    struct function_traits<R(__stdcall*)(Args...)>
+    {
+        using result_type = R;
+    };
+#endif
+
     template<typename Callable>
-    using ReturnType = typename decltype(std::function{ std::declval<Callable>() })::result_type;
+    using ReturnType = typename function_traits<std::decay_t<Callable>>::result_type;
 
     static inline SafetyHookInline shGetSystemTimeAsFileTime = {};
     static inline void WINAPI GetSystemTimeAsFileTimeHook(LPFILETIME lpSystemTimeAsFileTime)

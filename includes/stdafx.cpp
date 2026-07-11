@@ -458,9 +458,9 @@ BOOL CreateProcessInJobAsAdmin(
     LPCTSTR lpCurrentDirectory,
     LPPROCESS_INFORMATION ppi)
 {
-    SHELLEXECUTEINFOW sei = { sizeof(sei) };
+    SHELLEXECUTEINFOA sei = { sizeof(sei) };
     sei.fMask = SEE_MASK_NOCLOSEPROCESS | SEE_MASK_FLAG_NO_UI;
-    sei.lpVerb = L"runas";
+    sei.lpVerb = "runas";
     sei.lpFile = lpApplicationName;
     sei.lpParameters = lpCommandLine;
     sei.lpDirectory = lpCurrentDirectory;
