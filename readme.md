@@ -2,7 +2,7 @@
 
 [![wfp](https://raw.githubusercontent.com/ThirteenAG/thirteenag.github.io/master/img/logo2-bl.svg)](https://fusionfix.io/wfp)
 # ... but MinGW (compile on Linux!)
-Because MSVC is for losers.
+[Because MSVC is for losers.](https://youtu.be/iowq8OXyj-U?t=140)
 
 [![Downloads](https://img.shields.io/github/downloads/Fierelier/WidescreenFixesPack/total?color=red)](https://github.com/Fierelier/WidescreenFixesPack/releases/)
 
