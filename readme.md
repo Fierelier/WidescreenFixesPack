@@ -26,6 +26,8 @@ cd build
 AR=i686-w64-mingw32-ar CC=i686-w64-mingw32-gcc CXX=i686-w64-mingw32-g++ RESCOMP=i686-w64-mingw32-windres make -j$(nproc) -f NFSMostWanted.WidescreenFix.make
 ```
 
+You can find the resulting files in `data/NFSMostWanted.WidescreenFix/scripts`.
+
 # How to Report Crashes
 
 Open an issue. Don't bother sending crash dumps, I can't read that shit.
