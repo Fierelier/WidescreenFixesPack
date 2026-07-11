@@ -1,14 +1,19 @@
-module;
 
 #include <stdafx.h>
 #include "usercall.hpp"
 #define DIRECTINPUT_VERSION 0x0700
 #include <dinput.h>
 
-export module Controller;
+#include "ComVars.h"
 
-import ComVars;
 
+
+// Internal linkage: this file's contents were a non-exported module
+// purview under C++20 modules and must stay private to this translation
+// unit now that it's a plain .cpp, to avoid symbol collisions with other
+// files (e.g. two files each defining their own `Init()`).
+namespace
+{
 SafetyHookInline shsub_56FDB0 = {};
 void __cdecl sub_56FDB0(int a1, int a2)
 {
@@ -117,7 +122,7 @@ namespace cFEng
             void* Function = nullptr;
         };
 
-        FEObjectCallbackStruct callback = { nullptr, &cb };
+        FEObjectCallbackStruct callback = { nullptr, (void*)&cb };
         void* cbpointer = &callback;
 
         uintptr_t current = *reinterpret_cast<uintptr_t*>(reinterpret_cast<uintptr_t>(cFEng) + 0xE0);
@@ -266,7 +271,13 @@ public:
                     void operator()(injector::reg_pack& regs)
                     {
                         static const auto f0078125 = 0.0078125f;
-                        _asm {fmul dword ptr[f0078125]}
+                       __asm__ __volatile__ (
+							".intel_syntax noprefix\n\t"
+							"fmul dword ptr [%0]\n\t"
+							".att_syntax prefix\n\t"
+							:
+							: "m" (f0078125)
+						);
 
                         auto dword_91FABC = &unk_91F7F4[178];
                         auto dword_91FAF0 = &unk_91F7F4[191];
@@ -412,3 +423,5 @@ public:
         };
     }
 } Controller;
+
+} // anonymous namespace

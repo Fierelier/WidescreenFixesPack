@@ -1,12 +1,18 @@
-module;
 
 #include <stdafx.h>
 
-export module Rendering;
+#include "ComVars.h"
 
-import ComVars;
-import Resolution;
 
+#include "Resolution.h"
+
+
+// Internal linkage: this file's contents were a non-exported module
+// purview under C++20 modules and must stay private to this translation
+// unit now that it's a plain .cpp, to avoid symbol collisions with other
+// files (e.g. two files each defining their own `Init()`).
+namespace
+{
 class Rendering
 {
 public:
@@ -71,7 +77,7 @@ public:
                                 flt1 = f1;
                                 flt2 = 0.5f;
                                 flt3 = 1.0f;
-                                _asm fld ds : f1
+                                __asm__ __volatile__ ("flds %0" : : "m" (f1));
                                 return;
                             }
                             else
@@ -83,9 +89,9 @@ public:
                         }
 
                         if (regs.ecx == 3) //if rearview mirror
-                            _asm {fld ds : mirrorScale}
+                            __asm__ __volatile__ ("flds %0" : : "m" (mirrorScale));
                         else
-                            _asm {fld ds : ver3DScale}
+                            __asm__ __volatile__ ("flds %0" : : "m" (ver3DScale));
                     }
                 }; injector::MakeInline<FOVHook>(loc_6CF4EA, loc_6CF4F6);
                 injector::WriteMemory(dword_6CF4F0, 0x9001F983, true); //cmp     ecx, 1
@@ -119,7 +125,7 @@ public:
                 {
                     void operator()(injector::reg_pack& regs)
                     {
-                        _asm {fld ver3DScale}
+                        __asm__ __volatile__ ("flds %0" : : "m" (ver3DScale));
                     }
                 }; injector::MakeInline<ShadowCameraFix1>(loc_6E4652, loc_6E4652 + 8);
                 injector::MakeNOP(loc_6E4668, 4);
@@ -129,7 +135,7 @@ public:
                     void operator()(injector::reg_pack& regs)
                     {
                         *(uint32_t*)(regs.esp + 0x14) = regs.ecx;
-                        _asm {fld ver3DScale}
+                        __asm__ __volatile__ ("flds %0" : : "m" (ver3DScale));
                     }
                 }; injector::MakeInline<ShadowCameraFix2>(loc_6E47E4, loc_6E47E4 + 8);
                 injector::MakeNOP(loc_6E47EC, 4);
@@ -160,10 +166,10 @@ public:
                     float fRainScaleX = ((0.75f / GetAspectRatio()) * (4.0f / 3.0f));
                     float esp0C = *(float*)(regs.esp + 0x0C);
                     float esp10 = *(float*)(regs.esp + 0x10);
-                    _asm {fld dword ptr[esp0C]}
-                    _asm {fmul dword ptr[fRainScaleX]}
-                    _asm {fmul dword ptr[fRainDropletsScale]}
-                    _asm {fadd dword ptr[esp10]}
+                    __asm__ __volatile__ ("flds %0" : : "m" (esp0C));
+                    __asm__ __volatile__ ("fmuls %0" : : "m" (fRainScaleX));
+                    __asm__ __volatile__ ("fmuls %0" : : "m" (fRainDropletsScale));
+                    __asm__ __volatile__ ("fadds %0" : : "m" (esp10));
                 }
             }; injector::MakeInline<RainDropletsHook>(pattern.get_first(0), pattern.get_first(8)); //6D480D
 
@@ -172,8 +178,8 @@ public:
                 void operator()(injector::reg_pack& regs)
                 {
                     float esp08 = *(float*)(regs.esp + 0x08);
-                    _asm {fmul dword ptr[fRainDropletsScale]}
-                    _asm {fadd dword ptr[esp08]}
+                    __asm__ __volatile__ ("fmuls %0" : : "m" (fRainDropletsScale));
+                    __asm__ __volatile__ ("fadds %0" : : "m" (esp08));
                     *(uintptr_t*)(regs.esp + 0x38) = regs.ecx;
                 }
             }; injector::MakeInline<RainDropletsYScaleHook>(pattern.get_first(30), pattern.get_first(30 + 8)); //6D482B
@@ -247,3 +253,5 @@ public:
         };
     }
 } Rendering;
+
+} // anonymous namespace

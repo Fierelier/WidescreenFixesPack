@@ -1,13 +1,19 @@
-module;
 
 #include <stdafx.h>
 
-export module Shadows;
+#include "ComVars.h"
 
-import ComVars;
-import Resolution;
 
-export namespace ShadowRes
+#include "Resolution.h"
+
+
+// Internal linkage: this file's contents were a non-exported module
+// purview under C++20 modules and must stay private to this translation
+// unit now that it's a plain .cpp, to avoid symbol collisions with other
+// files (e.g. two files each defining their own `Init()`).
+namespace
+{
+namespace ShadowRes
 {
     constexpr uint32_t ShadowDepthCheckRes = 3072;
 
@@ -122,7 +128,7 @@ public:
                 {
                     void operator()(injector::reg_pack& regs)
                     {
-                        _asm {fld ShadowRes::DepthBias}
+                        __asm__ __volatile__ ("flds %0" : : "m" (ShadowRes::DepthBias));
                     }
                 }; injector::MakeInline<ShadowDepthBiasHook>(loc_6E54E1, loc_6E54E1 + 6);
 
@@ -233,3 +239,5 @@ public:
         };
     }
 } Shadows;
+
+} // anonymous namespace

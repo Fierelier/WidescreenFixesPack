@@ -1,10 +1,15 @@
-module;
 
 #include <stdafx.h>
 
-export module Resolution;
+#include "ComVars.h"
 
-import ComVars;
+#include "Resolution.h"
+
+// Internal linkage: everything in this file besides GetRes()/GetAspectRatio()
+// is implementation detail (matching what used to be non-exported
+// module-linkage content) and must stay private to this translation unit.
+namespace
+{
 
 using FEString = void;
 
@@ -208,16 +213,21 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
     return shWndProc.unsafe_stdcall<LRESULT>(hWnd, Msg, wParam, lParam);
 }
 
-export std::pair<int, int> GetRes()
+} // anonymous namespace
+
+std::pair<int, int> GetRes()
 {
     return { cachedWidth, cachedHeight };
 }
 
-export float GetAspectRatio()
+float GetAspectRatio()
 {
     auto [Width, Height] = GetRes();
     return static_cast<float>(Width) / static_cast<float>(Height);
 }
+
+namespace
+{
 
 class Resolution
 {
@@ -368,3 +378,5 @@ public:
         };
     }
 } Resolution;
+
+} // anonymous namespace
