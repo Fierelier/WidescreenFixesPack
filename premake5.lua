@@ -158,7 +158,7 @@ function CommonWorkspaceSetup(platform, prefix)
       buildlog ("build/log/%{prj.name}.log")
       cppdialect "C++latest"
       include "makefile.lua"
-      buildoptions { "/Zc:__cplusplus /utf-8" }
+      --buildoptions { "/Zc:__cplusplus /utf-8" }
       multiprocessorcompile ("On")
 
       kind "SharedLib"
@@ -202,7 +202,7 @@ function CommonWorkspaceSetup(platform, prefix)
 
       files { "source/%{prj.name}/*.h", "source/%{prj.name}/*.cpp", "source/%{prj.name}/*.hxx", "source/%{prj.name}/*.ixx" }
       files { "data/%{prj.name}/**" }
-      files { "Resources/*.rc" }
+      files { "resources/*.rc" }
       files { "external/hooking/Hooking.Patterns.h", "external/hooking/Hooking.Patterns.cpp" }
       files { "external/injector/safetyhook/include/**.hpp", "external/injector/safetyhook/src/**.cpp" }
 	  files { "external/injector/minhook/include/*.h", "external/injector/minhook/src/**.h", "external/injector/minhook/src/**.c" }
@@ -309,25 +309,25 @@ project "GTA1.WidescreenFix"
 project "GTA2.WidescreenFix"
    setpaths("Z:/WFP/Games/Grand Theft Auto/Grand Theft Auto 2/", "gta2.exe")
 project "GTA3.WidescreenFix"
-   prebuildcommands {
+   --[[prebuildcommands {
    "for /R \"../source/%{prj.name}/\" %%f in (*.fx) do (\"../includes/dxsdk/lib/x86/fxc.exe\" /T fx_2_0 /Fo \"../source/%{prj.name}/%%~nf.fxo\" \"%%f\")"
-   }
+   }]]--
    files { "source/%{prj.name}/*.fx", "source/%{prj.name}/*.rc" }
    defines { "IDR_POSTFX=201" }
    files { "includes/GTA/*.h", "includes/GTA/*.cpp" }
    setpaths("Z:/WFP/Games/Grand Theft Auto/GTAIII/", "gta3.exe")
 project "GTAVC.WidescreenFix"
-   prebuildcommands {
+   --[[prebuildcommands {
    "for /R \"../source/%{prj.name}/\" %%f in (*.fx) do (\"../includes/dxsdk/lib/x86/fxc.exe\" /T fx_2_0 /Fo \"../source/%{prj.name}/%%~nf.fxo\" \"%%f\")"
-   }
+   }]]--
    files { "source/%{prj.name}/*.fx", "source/%{prj.name}/*.rc" }
    defines { "IDR_POSTFX=201" }
    files { "includes/GTA/*.h", "includes/GTA/*.cpp" }
    setpaths("Z:/WFP/Games/Grand Theft Auto/Grand Theft Auto Vice City/", "gta-vc.exe")
 project "GTASA.WidescreenFix"
-   prebuildcommands {
+   --[[prebuildcommands {
    "for /R \"../source/%{prj.name}/\" %%f in (*.fx) do (\"../includes/dxsdk/lib/x86/fxc.exe\" /T fx_2_0 /Fo \"../source/%{prj.name}/%%~nf.fxo\" \"%%f\")"
-   }
+   }]]--
    files { "source/%{prj.name}/*.fx", "source/%{prj.name}/*.rc" }
    defines { "IDR_POSTFX=201" }
    files { "includes/GTA/*.h", "includes/GTA/*.cpp" }
@@ -344,10 +344,10 @@ project "JustCause.WidescreenFix"
    setpaths("Z:/WFP/Games/Just Cause/", "JustCause.exe")
 
 project "KingKong.WidescreenFix"
-   prebuildcommands {
+   --[[prebuildcommands {
       "for /R \"../source/%{prj.name}/\" %%f in (*.ps) do (\"../includes/dxsdk/lib/x86/fxc.exe\" /T ps_3_0 /nologo /E main /Fo \"../source/%{prj.name}/%%~nf.pso\" \"%%f\")",
       "for /R \"../source/%{prj.name}/\" %%f in (*.vs) do (\"../includes/dxsdk/lib/x86/fxc.exe\" /T vs_3_0 /nologo /E main /Fo \"../source/%{prj.name}/%%~nf.vso\" \"%%f\")"
-   }
+   }]]--
    files { "source/%{prj.name}/*.ps", "source/%{prj.name}/*.vs", "source/%{prj.name}/*.rc" }
    defines { "IDR_BLURPS=200" }
    defines { "IDR_BLURVS=201" }
@@ -403,52 +403,52 @@ group "NeedForSpeed"
 project "NFSTheRun.FusionFix"
    setpaths("Z:/WFP/Games/Need For Speed/Need for Speed The Run/", "Need For Speed The Run.exe", "plugins/")
 project "NFSCarbon.WidescreenFix"
-   prebuildcommands {
+   --[[prebuildcommands {
    "for /R \"../source/%{prj.name}/\" %%f in (*.fx) do (\"../includes/dxsdk/lib/x86/fxc.exe\" /T fx_2_0 /Fo \"../source/%{prj.name}/%%~nf.fxo\" \"%%f\")"
-   }
-   includedirs {"Resources"}
+   }]]--
+   includedirs {"resources"}
    files { "source/%{prj.name}/*.fx", "source/%{prj.name}/*.ps", "source/%{prj.name}/*.rc" }
    defines { "IDR_POSTFX=201" }
    setpaths("Z:/WFP/Games/Need For Speed/Need for Speed Carbon/", "NFSC.exe")
 project "NFSMostWanted.WidescreenFix"
-   prebuildcommands {
+   --[[prebuildcommands {
    "for /R \"../source/%{prj.name}/\" %%f in (*.fx) do (\"../includes/dxsdk/lib/x86/fxc.exe\" /T fx_2_0 /Fo \"../source/%{prj.name}/%%~nf.fxo\" \"%%f\")"
-   }
-   includedirs {"Resources"}
+   }]]--
+   includedirs {"resources"}
    files { "source/%{prj.name}/*.fx", "source/%{prj.name}/*.ps", "source/%{prj.name}/*.rc" }
    defines { "IDR_POSTFX=201" }
    setpaths("Z:/WFP/Games/Need For Speed/Need for Speed Most Wanted/", "speed.exe")
 project "NFSProStreet.FusionFix"
-   prebuildcommands {
+   --[[prebuildcommands {
    "for /R \"../source/%{prj.name}/\" %%f in (*.fx) do (\"../includes/dxsdk/lib/x86/fxc.exe\" /T fx_2_0 /Fo \"../source/%{prj.name}/%%~nf.fxo\" \"%%f\")"
-   }
-   includedirs {"Resources"}
+   }]]--
+   includedirs {"resources"}
    files { "source/%{prj.name}/*.fx", "source/%{prj.name}/*.ps", "source/%{prj.name}/*.rc" }
    defines { "IDR_POSTFX=201" }
    setpaths("Z:/WFP/Games/Need For Speed/Need for Speed ProStreet/", "nfsps.exe")
 project "NFSUndercover.FusionFix"
-   prebuildcommands {
+   --[[prebuildcommands {
    "for /R \"../source/%{prj.name}/\" %%f in (*.fx) do (\"../includes/dxsdk/lib/x86/fxc.exe\" /T fx_2_0 /Fo \"../source/%{prj.name}/%%~nf.fxo\" \"%%f\")"
-   }
-   includedirs {"Resources"}
+   }]]--
+   includedirs {"resources"}
    files { "source/%{prj.name}/*.fx", "source/%{prj.name}/*.ps", "source/%{prj.name}/*.rc" }
    defines { "IDR_POSTFX=201" }
    setpaths("Z:/WFP/Games/Need For Speed/Need for Speed Undercover/", "nfs.exe")
 project "NFSUnderground.WidescreenFix"
-   prebuildcommands {
+   --[[prebuildcommands {
    "for /R \"../source/%{prj.name}/\" %%f in (*.fx) do (\"../includes/dxsdk/lib/x86/fxc.exe\" /T fx_2_0 /Fo \"../source/%{prj.name}/%%~nf.fxo\" \"%%f\")"
-   }
-   includedirs {"Resources"}
+   }]]--
+   includedirs {"resources"}
    files { "source/%{prj.name}/*.fx", "source/%{prj.name}/*.ps", "source/%{prj.name}/*.rc" }
    defines { "IDR_NFSUICON=200" }
    defines { "IDR_POSTFX=201" }
    files { "textures/NFS/NFSU/icon.rc" }
    setpaths("Z:/WFP/Games/Need For Speed/Need For Speed Underground/", "speed.exe")
 project "NFSUnderground2.WidescreenFix"
-   prebuildcommands {
+   --[[prebuildcommands {
    "for /R \"../source/%{prj.name}/\" %%f in (*.fx) do (\"../includes/dxsdk/lib/x86/fxc.exe\" /T fx_2_0 /Fo \"../source/%{prj.name}/%%~nf.fxo\" \"%%f\")"
-   }
-   includedirs {"Resources"}
+   }]]--
+   includedirs {"resources"}
    files { "source/%{prj.name}/*.fx", "source/%{prj.name}/*.ps", "source/%{prj.name}/*.rc" }
    defines { "IDR_POSTFX=201" }
    setpaths("Z:/WFP/Games/Need For Speed/Need For Speed Underground 2/", "speed2.exe")
@@ -509,12 +509,12 @@ project "SplinterCellConviction.FusionFix"
 project "SplinterCellBlacklist.FusionFix"
    setpaths("Z:/WFP/Games/Splinter Cell/Splinter Cell Blacklist/", "src/SYSTEM/Blacklist_DX11_game.exe", "src/system/scripts/")
 project "SplinterCellDoubleAgent.WidescreenFix"
-   prebuildcommands {
+   --[[prebuildcommands {
    "for /R \"../source/%{prj.name}/\" %%f in (*.fx) do (\"../includes/dxsdk/lib/x86/fxc.exe\" /T fx_2_0 /Fo \"../source/%{prj.name}/%%~nf.fxo\" \"%%f\")",
    "for /R \"../source/%{prj.name}/\" %%f in (*.ps) do (\"../includes/dxsdk/lib/x86/asm_shader.exe\" \"%%f\" \"../source/%{prj.name}/%%~nf.pso\")",
    "for /R \"../source/%{prj.name}/\" %%f in (*.vs) do (\"../includes/dxsdk/lib/x86/asm_shader.exe\" \"%%f\" \"../source/%{prj.name}/%%~nf.vso\")",
-   }
-   includedirs {"Resources"}
+   }]]--
+   includedirs {"resources"}
    files { "source/%{prj.name}/*.fx", "source/%{prj.name}/*.ps", "source/%{prj.name}/*.rc" }
    files { "textures/SCDA/icon.rc" }
    defines { "IDR_SCDAICON=200" }
@@ -522,11 +522,11 @@ project "SplinterCellDoubleAgent.WidescreenFix"
    defines { "IDR_SHADER_BB6378E1=202" }
    setpaths("Z:/WFP/Games/Splinter Cell/Splinter Cell - Double Agent/", "SCDA-Offline/System/SplinterCell4.exe", "SCDA-Offline/System/scripts/")
 project "SplinterCellPandoraTomorrow.WidescreenFix"
-   prebuildcommands {
+   --[[prebuildcommands {
    "for /R \"../source/%{prj.name}/\" %%f in (*.fx) do (\"../includes/dxsdk/lib/x86/fxc.exe\" /Tps_1_1 /LD /Ewaterblend /Fo \"../source/%{prj.name}/%%~nf.fxo\" \"%%f\")",
    "for /R \"../source/%{prj.name}/\" %%f in (*.ps) do (\"../includes/dxsdk/lib/x86/asm_shader.exe\" \"%%f\" \"../source/%{prj.name}/%%~nf.pso\")",
    "for /R \"../source/%{prj.name}/\" %%f in (*.vs) do (\"../includes/dxsdk/lib/x86/asm_shader.exe\" \"%%f\" \"../source/%{prj.name}/%%~nf.vso\")",
-   }
+   }]]--
    files { "source/%{prj.name}/*.fx", "source/%{prj.name}/*.rc" }
    defines { "IDR_WATER_BLEND=200" }
    debugargs { "-uplay_steam_mode" }
@@ -570,8 +570,8 @@ project "TotalOverdose.WidescreenFix"
    setpaths("Z:/WFP/Games/Total Overdose/", "TOD.exe")
 
 project "TrueCrimeNewYorkCity.WidescreenFix"
-   prebuildcommands { "for /R \"../source/%{prj.name}/\" %%f in (*.fx) do (\"../includes/dxsdk/lib/x86/fxc.exe\" /T fx_2_0 /Fo \"../source/%{prj.name}/%%~nf.fxo\" \"%%f\")" }
-   includedirs {"Resources"}
+   --[[prebuildcommands { "for /R \"../source/%{prj.name}/\" %%f in (*.fx) do (\"../includes/dxsdk/lib/x86/fxc.exe\" /T fx_2_0 /Fo \"../source/%{prj.name}/%%~nf.fxo\" \"%%f\")" }]]--
+   includedirs {"resources"}
    files { "source/%{prj.name}/*.fx", "source/%{prj.name}/*.rc" }
    defines { "IDR_POSTFX=200" }
    defines { "IDR_AREATEX=201" }
