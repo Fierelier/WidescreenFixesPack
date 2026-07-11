@@ -51,7 +51,9 @@ namespace WindowedModeWrapper
         int WindowPosX = (int)(((float)DesktopX / 2.0f) - ((float)newWidth / 2.0f));
         int WindowPosY = (int)(((float)DesktopY / 2.0f) - ((float)newHeight / 2.0f));
 
-        SetProcessDPIAware();
+        #if WINVER >= 0x0600
+            SetProcessDPIAware();
+        #endif
 
         return std::make_tuple(WindowPosX, WindowPosY, newWidth, newHeight);
     }

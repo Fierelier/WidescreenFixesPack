@@ -158,7 +158,7 @@ function CommonWorkspaceSetup(platform, prefix)
       buildlog ("build/log/%{prj.name}.log")
       cppdialect "C++latest"
       include "makefile.lua"
-      --buildoptions { "/Zc:__cplusplus /utf-8" }
+      buildoptions { "-march=i486" }
       multiprocessorcompile ("On")
 
       kind "SharedLib"

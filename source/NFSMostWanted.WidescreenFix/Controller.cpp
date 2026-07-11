@@ -259,7 +259,7 @@ public:
                         if (it != Texts.end())
                         {
                             const std::string& text = (nImproveGamepadSupport != 2) ? TextsXBOX[i] : TextsPS[i];
-                            strcpy_s(pszStr, text.length() + 1, text.c_str());
+                            TGT_STRCPY(pszStr, text.length() + 1, text.c_str());
                         }
                     }
                 }; injector::MakeInline<Buttons>(pattern.get_first(16));

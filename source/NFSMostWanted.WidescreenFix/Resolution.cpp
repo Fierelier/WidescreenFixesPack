@@ -131,7 +131,7 @@ char __cdecl GetLocalizedWideString(wchar_t* out, int size, int hash)
         if (auto it = ResListText.find(hash); it != ResListText.end())
         {
             std::wstring ws(it->second.begin(), it->second.end());
-            wcscpy_s(out, std::min(size, int(ws.size()) + 1), ws.c_str());
+            TGT_WCSCPY(out, std::min(size, int(ws.size()) + 1), ws.c_str());
             return 1;
         }
     }

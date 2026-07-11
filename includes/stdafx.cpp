@@ -117,14 +117,14 @@ std::optional<float> ParseWidescreenHudOffset(std::string_view input)
     // Try "1280x720" format
     {
         int width = 0, height = 0;
-        if (sscanf_s(str.c_str(), "%dx%d", &width, &height) == 2 && width > 0)
+        if (TGT_SSCANF(str.c_str(), "%dx%d", &width, &height) == 2 && width > 0)
             return static_cast<float>(width);
     }
 
     // Try "16:9" format
     {
         float aspect1 = 0.0f, aspect2 = 0.0f;
-        if (sscanf_s(str.c_str(), "%f:%f", &aspect1, &aspect2) == 2 && aspect2 > 0.0f && aspect1 > 0.0f)
+        if (TGT_SSCANF(str.c_str(), "%f:%f", &aspect1, &aspect2) == 2 && aspect2 > 0.0f && aspect1 > 0.0f)
         {
             return aspect1 / aspect2;
         }
@@ -133,7 +133,7 @@ std::optional<float> ParseWidescreenHudOffset(std::string_view input)
     // Try "21/9" format
     {
         float aspect1 = 0.0f, aspect2 = 0.0f;
-        if (sscanf_s(str.c_str(), "%f/%f", &aspect1, &aspect2) == 2 && aspect2 > 0.0f && aspect1 > 0.0f)
+        if (TGT_SSCANF(str.c_str(), "%f/%f", &aspect1, &aspect2) == 2 && aspect2 > 0.0f && aspect1 > 0.0f)
         {
             return aspect1 / aspect2;
         }

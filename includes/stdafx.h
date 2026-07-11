@@ -412,6 +412,7 @@ bool fileExists(T fileName)
     return infile.good();
 }
 
+#if WINVER >= 0x6000
 inline std::filesystem::path GetKnownFolderPath(REFKNOWNFOLDERID rfid, DWORD dwFlags, HANDLE hToken)
 {
     std::filesystem::path r;
@@ -423,6 +424,9 @@ inline std::filesystem::path GetKnownFolderPath(REFKNOWNFOLDERID rfid, DWORD dwF
     CoTaskMemFree(szSystemPath);
     return r;
 };
+#else
+inline void GetKnownFolderPath(void) {}
+#endif
 
 template<typename... Ts>
 FARPROC FindProcAddress(HMODULE hModule, Ts... procNames)
