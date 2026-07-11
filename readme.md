@@ -1,6 +1,6 @@
 <div align="center">
 
-[![wfp](https://raw.githubusercontent.com/ThirteenAG/thirteenag.github.io/master/img/logo2-bl.svg)](https://fusionfix.io/wfp)
+![wfp](https://raw.githubusercontent.com/ThirteenAG/thirteenag.github.io/master/img/logo2-bl.svg)
 # ... but MinGW (compile on Linux!)
 [Because MSVC is for losers.](https://youtu.be/iowq8OXyj-U?t=140)
 
