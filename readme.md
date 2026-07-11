@@ -1,111 +1,35 @@
 <div align="center">
 
 [![wfp](https://raw.githubusercontent.com/ThirteenAG/thirteenag.github.io/master/img/logo2-bl.svg)](https://fusionfix.io/wfp)
+# ... but MinGW (compile on Linux!)
+Because MSVC is for losers.
 
-[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/ThirteenAG/WidescreenFixesPack/main.yml?branch=master&label=GitHub%20Actions%20Build&logo=GitHub)](https://github.com/ThirteenAG/WidescreenFixesPack/actions/workflows/main.yml)
-[![AppVeyor](https://img.shields.io/appveyor/build/ThirteenAG/WidescreenFixesPack?label=AppVeyor%20Build&logo=Appveyor&logoColor=white)](https://ci.appveyor.com/project/ThirteenAG/widescreenfixespack)
-[![Azure DevOps builds](https://img.shields.io/azure-devops/build/ThirteenAG/f555b128-da05-4bad-a972-90d529123a2e/3?label=Azure%20Pipelines%20Build&logo=Azure%20Pipelines)](https://dev.azure.com/thirteenag/WidescreenFixesPack/_build/latest?definitionId=3&branchName=master)
+[![Downloads](https://img.shields.io/github/downloads/Fierelier/WidescreenFixesPack/total?color=red)](https://github.com/Fierelier/WidescreenFixesPack/releases/)
 
-[![GitHub license](https://img.shields.io/github/license/ThirteenAG/WidescreenFixesPack?color=blue)](https://github.com/ThirteenAG/WidescreenFixesPack/blob/master/license)
-[![GitHub stars](https://img.shields.io/github/stars/ThirteenAG/WidescreenFixesPack?style=flat&color=blue)](https://github.com/ThirteenAG/WidescreenFixesPack/stargazers)
-[![Commits](https://img.shields.io/github/commit-activity/m/ThirteenAG/WidescreenFixesPack?label=commits)](https://github.com/ThirteenAG/WidescreenFixesPack/commits)
-[![GitHub last commit](https://img.shields.io/github/last-commit/ThirteenAG/WidescreenFixesPack?color=blue)](https://github.com/ThirteenAG/WidescreenFixesPack/commits)
-
-[![Platforms](https://img.shields.io/badge/platforms:-grey)](https://github.com/ThirteenAG/WidescreenFixesPack/releases)
-[![WINDOWS](https://img.shields.io/badge/WINDOWS-0078D4)](https://github.com/ThirteenAG/WidescreenFixesPack/releases?q=NOT+CXBXR+NOT+PCSX2F+NOT+PPSSPP&expanded=true)
-[![PCSX2F](https://img.shields.io/badge/PCSX2F-0271A6)](https://github.com/ThirteenAG/WidescreenFixesPack/releases?q=PCSX2F&expanded=true)
-[![PPSSPP](https://img.shields.io/badge/PPSSPP-33b5e5)](https://github.com/ThirteenAG/WidescreenFixesPack/releases?q=PPSSPP&expanded=true)
-[![CXBXR](https://img.shields.io/badge/CXBXR-96CE49)](https://github.com/ThirteenAG/WidescreenFixesPack/releases?q=CXBXR&expanded=true)
-[![DOLPHIN](https://img.shields.io/badge/DOLPHIN-30b5ff)](https://github.com/ThirteenAG/WidescreenFixesPack/releases?q=DOLPHIN&expanded=true)
-
-[![Downloads](https://img.shields.io/github/downloads/ThirteenAG/WidescreenFixesPack/total?color=red)](https://github.com/ThirteenAG/WidescreenFixesPack/releases/)
-
-https://fusionfix.io/wfp
-
-<p align="center">
-  <a href="https://patreon.fusionfix.io/" target="_blank"><img width="100%" src="https://fusionlegacyinitiative.com/sponsors-progress/sponsors-progress-wfp.svg"></a>
-  <br />
-  <a href="https://github.com/sponsors/ThirteenAG"><img src="https://thirteenag.github.io/img/buttons/github.svg" width="250"></a>
-  <a href="https://ko-fi.com/thirteenag"><img src="https://thirteenag.github.io/img/buttons/kofi.svg" width="250"></a>
-  <a href="https://paypal.me/SergeyP13"><img src="https://thirteenag.github.io/img/buttons/paypal.svg" width="250"></a>
-  <a href="https://www.patreon.com/ThirteenAG"><img src="https://thirteenag.github.io/img/buttons/patreon.svg" width="250"></a>
-  <a href="https://boosty.to/thirteenag"><img src="https://thirteenag.github.io/img/buttons/boosty.svg" width="250"></a><br><br>
-  <a href="https://discord.gg/2ckFCS572Z" target="_blank"><img width="200" src="https://raw.githubusercontent.com/ThirteenAG/GTAIV.EFLC.FusionFix/refs/heads/master/installer/discord.svg"></a>
-  &nbsp;&nbsp;&nbsp;
-  <a href="https://t.me/fusionfix" target="_blank"><img width="200" src="https://raw.githubusercontent.com/ThirteenAG/GTAIV.EFLC.FusionFix/refs/heads/master/installer/telegram.svg"></a>
-  &nbsp;&nbsp;&nbsp;
-  <a href="https://www.youtube.com/@FusionFix10" target="_blank"><img width="200" src="https://raw.githubusercontent.com/ThirteenAG/GTAIV.EFLC.FusionFix/refs/heads/master/installer/youtube.svg"></a>
-  &nbsp;&nbsp;&nbsp;
-  <a href="https://x.com/fusionfix10" target="_blank"><img width="200" src="https://raw.githubusercontent.com/ThirteenAG/GTAIV.EFLC.FusionFix/refs/heads/master/installer/x.svg"></a>
-  &nbsp;&nbsp;&nbsp;
-</p>
-
-Plugins to make or improve widescreen resolutions support in PC games, add more features and fix bugs.
+Plugins ~~to make or improve widescreen resolutions support in PC games, add more features and fix bugs.~~ that do way too much.
 </div>
 
 # Building and Installing
 
+**Currently, only NFSMostWanted is supported**
+
 Requirements:
 
 - [Premake 5](https://premake.github.io/) _(pre-built executable available in this repository root)_
-- [Visual Studio](http://www.visualstudio.com/downloads)
+- ~~Visual Studio~~ (awful)
+- MinGW (baaazzeeddd!!!)
 
-Run the following command in the root of this directory to generate the project files (or simply launch **premake5.bat**):
-
-    premake5 vs2022
-
-The usage is as simple as inserting the files into game's root directory. Uninstalling is as easy as that too, delete the files and you are done.
+```sh
+wine premake5.exe gmake
+./patch-makefiles.sh
+cd build
+make -j$(nproc) -f NFSMostWanted.WidescreenFix.make
+```
 
 # How to Report Crashes
 
-If the game crashes while using the fixes, please send the **crash dump** (.dmp file).
-
-#### ⚙️ Easiest way (Recommended)
-
-Plugins usually come with an [Ultimate ASI Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader) that is capable of generating crash dumps and crash logs.
-
-1. Go to your game's main folder (where the game's `.exe` file is located).
-2. In the same folder, create a new folder and name it exactly:
-   **`CrashDumps`**
-
-**After the game crashes:**
-- Open the **CrashDumps** folder you created.
-- Look for the newest file with the `.dmp` extension (this is the most important file).
-- You may also include the `.log` file if it exists, but the **.dmp file is required**.
-
-Please send the `.dmp` file when reporting the crash.
-
-You can report it here:
-- [GitHub Issues](https://github.com/ThirteenAG/WidescreenFixesPack/issues)
-
-#### ⚙️ Alternative way (Windows built-in crash dumps)
-
-Use this method only if the previous method doesn't create a dump.
-
-1. Press **Windows key + R**, type `regedit`, and press Enter.
-2. Navigate to this path:  
-   `HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting`
-3. Right-click inside the **Windows Error Reporting** folder → **New** → **Key**, and name it exactly: **`LocalDumps`**
-4. Close Registry Editor.
-
-After a crash, the dump file will be saved here:  
-`C:\Users\YOURUSERNAME\AppData\Local\CrashDumps`
-
-Find the newest `.dmp` file related to your game and send it in [GitHub Issues](https://github.com/ThirteenAG/WidescreenFixesPack/issues).
-
-**Warning:** This method requires administrator rights and enables crash dumps for all programs on your computer.
-
-#### ⚙️ If the game **hangs or freezes** (instead of crashing)
-
-1. Press **Ctrl + Shift + Esc** to open Task Manager.
-2. Find the game process in the list (usually the name of the game's `.exe`).
-3. Right-click on it and select **Create memory dump file**.
-
-**Warning:** This file will be quite large (hundreds of MB or more).
-
-Upload the `.dmp` file to Google Drive, OneDrive, Dropbox, or any similar service **and make sure the link is set to public access**. Then share the link when reporting in [GitHub Issues](https://github.com/ThirteenAG/WidescreenFixesPack/issues).
+Open an issue. Don't bother sending crash dumps, I can't read that shit.
 
 # Important notes
 
-- Not compatible with Windows XP (without recompiling with `_xp` toolset and `/Zc:threadSafeInit-`).
-- For using with WINE, follow [this guide](https://silentsblog.com/setup-instructions/#proton-wine).
+- Not compatible with Windows XP (without recompiling with `_xp` toolset and `/Zc:threadSafeInit-`). -- **CHALLENGE ACCEPTED!!**
