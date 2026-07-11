@@ -3,10 +3,10 @@
 	url = https://github.com/ThirteenAG/injector
 [submodule "external/inireader"]
 	path = external/inireader
-	url = https://github.com/ThirteenAG/IniReader
+	url = https://github.com/Fierelier/IniReader
 [submodule "external/hooking"]
 	path = external/hooking
-	url = https://github.com/ThirteenAG/Hooking.Patterns
+	url = https://github.com/Fierelier/Hooking.Patterns
 [submodule "external/spdlog"]
 	path = external/spdlog
 	url = https://github.com/gabime/spdlog
