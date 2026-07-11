@@ -2,7 +2,7 @@
 
 ![wfp](https://raw.githubusercontent.com/ThirteenAG/thirteenag.github.io/master/img/logo2-bl.svg)
 # ... but MinGW (compile on Linux!)
-[Because MSVC is for losers.](https://youtu.be/iowq8OXyj-U?t=140)
+[Because MSVC is for losers.](https://youtu.be/iowq8OXyj-U?t=140) Also, we support WinXP.
 
 [![Downloads](https://img.shields.io/github/downloads/Fierelier/WidescreenFixesPack/total?color=red)](https://github.com/Fierelier/WidescreenFixesPack/releases/)
 
