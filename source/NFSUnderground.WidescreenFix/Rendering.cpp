@@ -1,11 +1,16 @@
-module;
 
 #include <stdafx.h>
 
-export module Rendering;
+#include "ComVars.h"
 
-import ComVars;
-import Resolution;
+#include "Resolution.h"
+
+// Internal linkage: this file's contents were a non-exported module
+// purview under C++20 modules and must stay private to this translation
+// unit now that it's a plain .cpp, to avoid symbol collisions with other
+// files (e.g. two files each defining their own `Init()`).
+namespace
+{
 
 class Rendering
 {
@@ -57,7 +62,7 @@ public:
                                 flt1 = f1;
                                 flt2 = 0.5f;
                                 flt3 = 1.0f;
-                                _asm fld ds : f1
+                                __asm__ __volatile__ ("flds %0" : : "m" (f1));
                                 return;
                             }
                             else
@@ -69,9 +74,9 @@ public:
                         }
 
                         if (regs.eax == 3) //if rearview mirror
-                            _asm fld ds : mirrorScale
+                            __asm__ __volatile__ ("flds %0" : : "m" (mirrorScale));
                         else
-                            _asm fld ds : ver3DScale
+                            __asm__ __volatile__ ("flds %0" : : "m" (ver3DScale));
                     }
                 }; injector::MakeInline<FOVHook>(pattern.get_first(0), pattern.get_first(14));
 
@@ -88,3 +93,5 @@ public:
         };
     }
 } Rendering;
+
+} // anonymous namespace

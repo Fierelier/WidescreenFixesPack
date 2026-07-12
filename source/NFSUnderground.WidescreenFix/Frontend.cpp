@@ -1,13 +1,19 @@
-module;
 
 #include <stdafx.h>
 #include <d3d9.h>
 #include <usercall.hpp>
 
-export module Frontend;
+#include "ComVars.h"
 
-import ComVars;
-import Resolution;
+#include "Resolution.h"
+#include "Compat.h"
+
+// Internal linkage: this file's contents were a non-exported module
+// purview under C++20 modules and must stay private to this translation
+// unit now that it's a plain .cpp, to avoid symbol collisions with other
+// files (e.g. two files each defining their own `Init()`).
+namespace
+{
 
 std::optional<float> fHudAspectRatioConstraint;
 float fWidescreenHudOffset = 120.0f;
@@ -155,7 +161,7 @@ public:
                 pattern.for_each_result([](auto match)
                 {
                     ProtectedGameRef<float> ref;
-                    ref.SetAddress(match.get<float>(7));
+                    ref.SetAddress(match.template get<float>(7));
                     fHudPosXArray.push_back(std::move(ref));
                 });
 
@@ -163,7 +169,7 @@ public:
                 pattern.for_each_result([](auto match)
                 {
                     ProtectedGameRef<float> ref;
-                    ref.SetAddress(match.get<float>(4));
+                    ref.SetAddress(match.template get<float>(4));
                     fHudPosXArray.push_back(std::move(ref));
                 });
 
@@ -171,7 +177,7 @@ public:
                 pattern.for_each_result([](auto match)
                 {
                     ProtectedGameRef<float> ref;
-                    ref.SetAddress(match.get<float>(4));
+                    ref.SetAddress(match.template get<float>(4));
                     fHudPosXArray.push_back(std::move(ref));
                 });
 
@@ -208,7 +214,7 @@ public:
                 pattern.for_each_result([](auto match)
                 {
                     ProtectedGameRef<int32_t> ref;
-                    ref.SetAddress(match.get<int32_t>(2));
+                    ref.SetAddress(match.template get<int32_t>(2));
                     fNegativeHudPosXArray.push_back(std::move(ref));
                 });
 
@@ -216,7 +222,7 @@ public:
                 pattern.for_each_result([](auto match)
                 {
                     ProtectedGameRef<int32_t> ref;
-                    ref.SetAddress(match.get<int32_t>(1));
+                    ref.SetAddress(match.template get<int32_t>(1));
                     fNegativeHudPosXArray.push_back(std::move(ref));
                 });
 
@@ -291,7 +297,7 @@ public:
                 {
                     int32_t PosX, PosY;
                     float fOffsetX, fOffsetY;
-                    sscanf_s(line.data(), "%*s %x %x %f %f %*f %*f", &PosX, &PosY, &fOffsetX, &fOffsetY);
+                    TGT_SSCANF(line.data(), "%*s %x %x %f %f %*f %*f", &PosX, &PosY, &fOffsetX, &fOffsetY);
                     HudCoords.emplace_back(PosX, PosY, fOffsetX, fOffsetY);
                 });
 
@@ -363,7 +369,7 @@ public:
                             *(uint32_t*)(regs.ecx + 0x68) = HudPosX.dwPos;
                             *(uint32_t*)(regs.ecx + 0x6C) = HudPosY.dwPos;
 
-                            _asm fld dword ptr[HudPosX.fPos]
+                            __asm__ __volatile__ ("flds %0" : : "m" (HudPosX.fPos));
                         }
                     }; injector::MakeInline<MinimapHook1>(pattern.get_first(0), pattern.get_first(6));
 
@@ -379,7 +385,7 @@ public:
                             WidescreenHud(HudPosX, HudPosY, true);
                             *(uint32_t*)(regs.eax + 0x68) = HudPosX.dwPos;
                             *(uint32_t*)(regs.eax + 0x6C) = HudPosY.dwPos;
-                            _asm fld dword ptr[HudPosX.fPos]
+                            __asm__ __volatile__ ("flds %0" : : "m" (HudPosX.fPos));
                         }
                     }; injector::MakeInline<MinimapHook2>(pattern.get_first(0), pattern.get_first(6));
 
@@ -394,8 +400,8 @@ public:
                             *(uint32_t*)(regs.eax + 0x1C) = HudPosX.dwPos;
                             *(uint32_t*)(regs.eax + 0x20) = HudPosY.dwPos;
                             regs.ecx = *(uint32_t*)(regs.ebp + 0x8);
-                            _asm {fld dword ptr[HudPosX.fPos]}
-                            _asm {fld dword ptr[HudPosY.fPos]}
+                            __asm__ __volatile__ ("flds %0" : : "m" (HudPosX.fPos));
+                            __asm__ __volatile__ ("flds %0" : : "m" (HudPosY.fPos));
                         }
                     }; injector::MakeInline<MinimapHook3>(pattern.get_first(0), pattern.get_first(9));
 
@@ -411,7 +417,7 @@ public:
                             WidescreenHud(HudPosX, HudPosY);
                             *(uint32_t*)(regs.ebx + 0x1C) = HudPosX.dwPos;
                             *(uint32_t*)(regs.ebx + 0x20) = HudPosY.dwPos;
-                            _asm fadd dword ptr[HudPosX.fPos]
+                            __asm__ __volatile__ ("fadds %0" : : "m" (HudPosX.fPos));
                         }
                     }; injector::MakeInline<LapsHook>(pattern.get_first(0), pattern.get_first(7));
                 }
@@ -479,3 +485,5 @@ public:
         };
     };
 } Frontend;
+
+} // anonymous namespace

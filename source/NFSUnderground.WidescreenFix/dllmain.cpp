@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "d3d9.h"
-
-import ComVars;
+#include "ComVars.h"
 
 std::once_flag of;
 

@@ -1,11 +1,15 @@
-module;
 
 #include <stdafx.h>
 #include <FunctionHookMinHook.hpp>
 
-export module Registry;
+#include "ComVars.h"
 
-import ComVars;
+// Internal linkage: this file's contents were a non-exported module
+// purview under C++20 modules and must stay private to this translation
+// unit now that it's a plain .cpp, to avoid symbol collisions with other
+// files (e.g. two files each defining their own `Init()`).
+namespace
+{
 
 static std::filesystem::path CustomUserDir;
 static bool bUseCustomUserDir = false;
@@ -49,3 +53,5 @@ public:
         mhSHGetFolderPathA->create();
     }
 } Registry;
+
+} // anonymous namespace

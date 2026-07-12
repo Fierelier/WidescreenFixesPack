@@ -1,15 +1,19 @@
-module;
 
 #include <stdafx.h>
 #include "usercall.hpp"
 #define DIRECTINPUT_VERSION 0x0700
 #include <dinput.h>
 
-export module Controller;
-
-import ComVars;
+#include "ComVars.h"
 
 using namespace usercall;
+
+// Internal linkage: this file's contents were a non-exported module
+// purview under C++20 modules and must stay private to this translation
+// unit now that it's a plain .cpp, to avoid symbol collisions with other
+// files (e.g. two files each defining their own `Init()`).
+namespace
+{
 
 SafetyHookInline shsub_4F3030 = {};
 void __cdecl sub_4F3030(int a1, int a2)
@@ -262,7 +266,7 @@ public:
                         if (it != Texts.end())
                         {
                             const std::wstring& text = (nImproveGamepadSupport != 2) ? TextsXBOX[i] : TextsPS[i];
-                            wcscpy_s(pszStr, text.length() + 1, text.c_str());
+                            TGT_WCSCPY(pszStr, text.length() + 1, text.c_str());
                         }
                     }
                 }; if (pattern.size() > 0) { injector::MakeInline<Buttons>(pattern.get_first(0), pattern.get_first(7)); }
@@ -374,3 +378,5 @@ public:
         };
     }
 } Controller;
+
+} // anonymous namespace

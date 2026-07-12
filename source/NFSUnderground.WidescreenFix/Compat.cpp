@@ -1,12 +1,11 @@
-module;
 
 #include <stdafx.h>
 
-export module Compat;
+#include "ComVars.h"
 
-import ComVars;
+#include "Compat.h"
 
-export namespace XtendedInput
+namespace XtendedInput
 {
     HMODULE mhXtendedInput = NULL;
     float(__cdecl* SetFEScale)(float val) = nullptr;
@@ -14,6 +13,13 @@ export namespace XtendedInput
     bool bLookedForXInput = false;
     bool bFoundXInput = false;
 }
+
+// Internal linkage: everything below is implementation detail (matching what
+// used to be non-exported module-linkage content) and must stay private to
+// this translation unit. XtendedInput above stays externally visible since
+// it's declared `extern` in Compat.h.
+namespace
+{
 
 namespace XtendedInputCompat
 {
@@ -122,3 +128,5 @@ public:
         };
     }
 } Compat;
+
+} // anonymous namespace

@@ -452,6 +452,9 @@ project "NFSUnderground.WidescreenFix"
    files { "source/%{prj.name}/*.fx", "source/%{prj.name}/*.ps", "source/%{prj.name}/*.rc" }
    defines { "IDR_NFSUICON=200" }
    defines { "IDR_POSTFX=201" }
+   filter "action:gmake2"
+      links { "gdi32" }
+   filter {}
    files { "textures/NFS/NFSU/icon.rc" }
    setpaths("Z:/WFP/Games/Need For Speed/Need For Speed Underground/", "speed.exe")
 project "NFSUnderground2.WidescreenFix"

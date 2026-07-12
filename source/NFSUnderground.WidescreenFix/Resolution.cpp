@@ -1,11 +1,17 @@
-module;
 
 #include <stdafx.h>
 #include <d3d9.h>
 
-export module Resolution;
+#include "ComVars.h"
 
-import ComVars;
+#include "Resolution.h"
+
+// Internal linkage: everything in this file besides SetRes()/GetRes()/
+// GetAspectRatio() is implementation detail (matching what used to be
+// non-exported module-linkage content) and must stay private to this
+// translation unit.
+namespace
+{
 
 struct Res
 {
@@ -75,7 +81,10 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 
 std::vector<ProtectedGameRef<int32_t>> ResXRefs;
 std::vector<ProtectedGameRef<int32_t>> ResYRefs;
-export void SetRes(int width, int height)
+
+} // anonymous namespace
+
+void SetRes(int width, int height)
 {
     for (auto& ref : ResXRefs)
     {
@@ -92,16 +101,19 @@ export void SetRes(int width, int height)
     onResChange().executeAll(cachedWidth, cachedHeight);
 }
 
-export std::pair<int, int> GetRes()
+std::pair<int, int> GetRes()
 {
     return { cachedWidth, cachedHeight };
 }
 
-export float GetAspectRatio()
+float GetAspectRatio()
 {
     auto [Width, Height] = GetRes();
     return static_cast<float>(Width) / static_cast<float>(Height);
 }
+
+namespace
+{
 
 std::string GetResolutionConfigPath()
 {
@@ -275,10 +287,6 @@ public:
                 setResRef(pattern, 6, ResYRefs);
 
                 pattern = hook::pattern("B8 ? ? ? ? BE ? ? ? ? 50 E8 ? ? ? ? 83 C4 ? 5E E9 ? ? ? ? B8 ? ? ? ? BE ? ? ? ? 50 E8 ? ? ? ? 83 C4 ? 5E E9 ? ? ? ? BE");
-                setResRef(pattern, 1, ResXRefs);
-                setResRef(pattern, 6, ResYRefs);
-
-                pattern = hook::pattern("B8 ? ? ? ? BE ? ? ? ? 50 E8 ? ? ? ? 83 C4 ? 5E E9 ? ? ? ? BE");
                 setResRef(pattern, 1, ResXRefs);
                 setResRef(pattern, 6, ResYRefs);
 
@@ -495,3 +503,5 @@ public:
         };
     }
 } Resolution;
+
+} // anonymous namespace
