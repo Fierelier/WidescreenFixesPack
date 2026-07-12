@@ -13,36 +13,28 @@
 namespace
 {
 
-void StartHUDScissorTest(IDirect3DDevice9* pDevice, float safeAspectRatio = (4.0f / 3.0f), UINT forcedWidth = 0, UINT forcedHeight = 0)
+void StartHUDScissorTest(IDirect3DDevice9* pDevice, float safeAspectRatio, float windowAspectRatio)
 {
-    if (!pDevice) return;
+    if (!pDevice || windowAspectRatio <= 0.0f) return;
 
     UINT screenWidth = 0;
     UINT screenHeight = 0;
 
-    if (forcedWidth > 0 && forcedHeight > 0)
+    IDirect3DSurface9* pBackBuffer = nullptr;
+    if (SUCCEEDED(pDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer)) && pBackBuffer)
     {
-        screenWidth = forcedWidth;
-        screenHeight = forcedHeight;
+        D3DSURFACE_DESC desc = {};
+        pBackBuffer->GetDesc(&desc);
+        screenWidth = desc.Width;
+        screenHeight = desc.Height;
+        pBackBuffer->Release();
     }
     else
     {
-        IDirect3DSurface9* pBackBuffer = nullptr;
-        if (SUCCEEDED(pDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer)) && pBackBuffer)
-        {
-            D3DSURFACE_DESC desc = {};
-            pBackBuffer->GetDesc(&desc);
-            screenWidth = desc.Width;
-            screenHeight = desc.Height;
-            pBackBuffer->Release();
-        }
-        else
-        {
-            D3DVIEWPORT9 vp = {};
-            pDevice->GetViewport(&vp);
-            screenWidth = vp.Width;
-            screenHeight = vp.Height;
-        }
+        D3DVIEWPORT9 vp = {};
+        pDevice->GetViewport(&vp);
+        screenWidth = vp.Width;
+        screenHeight = vp.Height;
     }
 
     if (screenWidth == 0 || screenHeight == 0)
@@ -50,23 +42,13 @@ void StartHUDScissorTest(IDirect3DDevice9* pDevice, float safeAspectRatio = (4.0
 
     RECT scissorRect = { 0, 0, (LONG)screenWidth, (LONG)screenHeight };
 
-    float currentAspect = (float)screenWidth / (float)screenHeight;
-
-    if (currentAspect > safeAspectRatio)
+    if (windowAspectRatio > safeAspectRatio)
     {
-        LONG desiredWidth = (LONG)(screenHeight * safeAspectRatio + 0.5f);
+        LONG desiredWidth = (LONG)(screenWidth * (safeAspectRatio / windowAspectRatio) + 0.5f);
         LONG marginX = ((LONG)screenWidth - desiredWidth) / 2;
 
         scissorRect.left = marginX;
         scissorRect.right = (LONG)screenWidth - marginX;
-    }
-    else if (currentAspect < safeAspectRatio)
-    {
-        LONG desiredHeight = (LONG)(screenWidth / safeAspectRatio + 0.5f);
-        LONG marginY = ((LONG)screenHeight - desiredHeight) / 2;
-
-        scissorRect.top = marginY;
-        scissorRect.bottom = (LONG)screenHeight - marginY;
     }
 
     pDevice->SetRenderState(D3DRS_SCISSORTESTENABLE, TRUE);
@@ -96,10 +78,7 @@ public:
                 static auto ScissorTest1 = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
                 {
                     if (nGameState == 3 && !MovieIsPlaying())
-                    {
-                        auto [Width, Height] = GetRes();
-                        StartHUDScissorTest(Direct3DDevice, 4.0f / 3.0f, Width, Height);
-                    }
+                        StartHUDScissorTest(Direct3DDevice, 4.0f / 3.0f, GetAspectRatio());
                 });
 
                 pattern = hook::pattern("E9 ? ? ? ? 85 C0 74 ? A1");

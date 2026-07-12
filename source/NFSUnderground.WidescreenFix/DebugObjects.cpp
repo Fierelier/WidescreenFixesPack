@@ -99,6 +99,22 @@ void DrawRect(LPDIRECT3DDEVICE9 pDevice, int32_t x, int32_t y, int32_t w, int32_
     pDevice->Clear(1, &BarRect, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, color, 0, 0);
 }
 
+std::pair<int, int> GetBackBufferSize(IDirect3DDevice9* pDevice)
+{
+    IDirect3DSurface9* pBackBuffer = nullptr;
+    if (SUCCEEDED(pDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer)) && pBackBuffer)
+    {
+        D3DSURFACE_DESC desc = {};
+        pBackBuffer->GetDesc(&desc);
+        pBackBuffer->Release();
+        return { (int)desc.Width, (int)desc.Height };
+    }
+
+    D3DVIEWPORT9 vp = {};
+    pDevice->GetViewport(&vp);
+    return { (int)vp.Width, (int)vp.Height };
+}
+
 class DebugObjects
 {
 public:
@@ -125,14 +141,17 @@ public:
 
                             if (nGameState == 3)
                             {
-                                auto [Width, Height] = GetRes();
+                                auto [Width, Height] = GetBackBufferSize(*pDevice);
+                                float windowAspect = GetAspectRatio();
 
-                                int32_t nWidth43 = static_cast<int32_t>(static_cast<float>(Height) * (4.0f / 3.0f));
-                                float fWidth43 = static_cast<float>(nWidth43);
-                                float fHudOffsetReal = (static_cast<float>(Width) - static_cast<float>(Height) * (4.0f / 3.0f)) / 2.0f;
+                                if (Width > 0 && Height > 0 && windowAspect > (4.0f / 3.0f))
+                                {
+                                    float fWidth43 = static_cast<float>(Width) * ((4.0f / 3.0f) / windowAspect);
+                                    float fHudOffsetReal = (static_cast<float>(Width) - fWidth43) / 2.0f;
 
-                                DrawRect(*pDevice, 0, 0, static_cast<int32_t>(fHudOffsetReal), Height);
-                                DrawRect(*pDevice, static_cast<int32_t>(fWidth43 + fHudOffsetReal), 0, static_cast<int32_t>(fWidth43 + fHudOffsetReal + fHudOffsetReal), Height);
+                                    DrawRect(*pDevice, 0, 0, static_cast<int32_t>(fHudOffsetReal), Height);
+                                    DrawRect(*pDevice, static_cast<int32_t>(fWidth43 + fHudOffsetReal), 0, static_cast<int32_t>(fWidth43 + fHudOffsetReal + fHudOffsetReal), Height);
+                                }
                             }
                         }
                     }; injector::MakeInline<EndSceneHook>(pattern.get_first(0), pattern.get_first(7));
