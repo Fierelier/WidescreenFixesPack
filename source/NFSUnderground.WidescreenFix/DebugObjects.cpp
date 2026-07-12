@@ -129,32 +129,23 @@ public:
             {
                 if (nHideDebugObjects == 2)
                 {
-                    //D3D9 EndScene Hook
-                    auto pattern = hook::pattern("A1 ? ? ? ? 8B 08 83 C4 04 50");
-                    static LPDIRECT3DDEVICE9* pDevice = *pattern.get_first<LPDIRECT3DDEVICE9*>(1);
-                    struct EndSceneHook
+                    WFP::onEndScene() += []()
                     {
-                        void operator()(injector::reg_pack& regs)
+                        if (nGameState == 3)
                         {
-                            regs.eax = *(uint32_t*)pDevice;
-                            regs.ecx = *(uint32_t*)(regs.eax);
+                            auto [Width, Height] = GetBackBufferSize(Direct3DDevice);
+                            float windowAspect = GetAspectRatio();
 
-                            if (nGameState == 3)
+                            if (Width > 0 && Height > 0 && windowAspect > (4.0f / 3.0f))
                             {
-                                auto [Width, Height] = GetBackBufferSize(*pDevice);
-                                float windowAspect = GetAspectRatio();
+                                float fWidth43 = static_cast<float>(Width) * ((4.0f / 3.0f) / windowAspect);
+                                float fHudOffsetReal = (static_cast<float>(Width) - fWidth43) / 2.0f;
 
-                                if (Width > 0 && Height > 0 && windowAspect > (4.0f / 3.0f))
-                                {
-                                    float fWidth43 = static_cast<float>(Width) * ((4.0f / 3.0f) / windowAspect);
-                                    float fHudOffsetReal = (static_cast<float>(Width) - fWidth43) / 2.0f;
-
-                                    DrawRect(*pDevice, 0, 0, static_cast<int32_t>(fHudOffsetReal), Height);
-                                    DrawRect(*pDevice, static_cast<int32_t>(fWidth43 + fHudOffsetReal), 0, static_cast<int32_t>(fWidth43 + fHudOffsetReal + fHudOffsetReal), Height);
-                                }
+                                DrawRect(Direct3DDevice, 0, 0, static_cast<int32_t>(fHudOffsetReal), Height);
+                                DrawRect(Direct3DDevice, static_cast<int32_t>(fWidth43 + fHudOffsetReal), 0, static_cast<int32_t>(fWidth43 + fHudOffsetReal + fHudOffsetReal), Height);
                             }
                         }
-                    }; injector::MakeInline<EndSceneHook>(pattern.get_first(0), pattern.get_first(7));
+                    };
                 }
                 else
                 {
