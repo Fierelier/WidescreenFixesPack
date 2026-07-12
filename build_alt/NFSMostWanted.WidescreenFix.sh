@@ -1,5 +1,5 @@
 set -e
-. vars.sh
+. ./vars.sh
 
 echo Creating obj/Win32/Release/NFSMostWanted.WidescreenFix
 mkdir -p obj/Win32/Release/NFSMostWanted.WidescreenFix
