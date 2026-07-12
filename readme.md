@@ -9,32 +9,51 @@
 Plugins ~~to make or improve widescreen resolutions support in PC games, add more features and fix bugs.~~ that do way too much.
 </div>
 
-# Building and Installing
+# Building
 
 **Currently, only NFSMostWanted and NFSUnderground are supported**
+
+You can find the resulting files in `data/*.WidescreenFix/scripts`.
+
+## Premake 5
 
 Requirements:
 
 - [Premake 5](https://premake.github.io/) _(pre-built executable available in this repository root)_
+- sh
+- make
 - MinGW
 
 ```sh
 wine premake5.exe gmake
 ./patch-makefiles.sh
 cd build
-AR=i686-w64-mingw32-ar
-CC=i686-w64-mingw32-gcc
-CXX=i686-w64-mingw32-g++
-RESCOMP=i686-w64-mingw32-windres
 GAME=NFSMostWanted # or NFSUnderground
+export AR=i686-w64-mingw32-ar
+export CC=i686-w64-mingw32-gcc
+export CXX=i686-w64-mingw32-g++
+export RESCOMP=i686-w64-mingw32-windres
 make -j$(nproc) -f $GAME.WidescreenFix.make
 ```
 
-You can find the resulting files in `data/*.WidescreenFix/scripts`.
+## sh
+
+I recommend this path on Windows. You can simply grab [busybox-w32](https://frippery.org/busybox/) and [mingw-lite](https://github.com/redpanda-cpp/mingw-lite) to get started. This method even allows you to compile right from Windows XP.
+
+Requirements:
+
+- sh
+- MinGW
+
+```sh
+cd build_alt
+GAME=NFSMostWanted # or NFSUnderground
+./$GAME.WidescreenFix.sh
+```
 
 # XP Support
 
-To enable XP support, edit `include/targetver.h` and change `#define _WIN32_WINNT 0x0600` to `#define _WIN32_WINNT 0x0500`. Note that this requires a MinGW with POSIX threads, I believe. If you want to support CPUs without SSE(2), you should also use a MinGW that isn't compiled with it. You can use a Gentoo i486 chroot for example, or [mingw-lite](https://github.com/redpanda-cpp/mingw-lite) (one of the i486 w98 builds) on Windows.
+To enable XP support, edit `include/targetver.h` and change `#define WINVER 0x0600` to `#define WINVER 0x0501`. Note that this requires a MinGW with POSIX threads, I believe. If you want to support CPUs without SSE(2), you should also use a MinGW that isn't compiled with it. You can use a Gentoo i486 chroot for example, or [mingw-lite](https://github.com/redpanda-cpp/mingw-lite) (one of the i486 w98 builds) on Windows.
 
 # How to Report Crashes
 

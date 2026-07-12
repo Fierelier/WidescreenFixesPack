@@ -1,7 +1,10 @@
 #pragma once
 
-#define _WIN32_WINNT 0x0600 // Windows Vista
-#define WINVER _WIN32_WINNT
+#ifndef WINVER
+	#define WINVER 0x0600 // Windows Vista
+#endif
+
+#define _WIN32_WINNT WINVER
 
 #if WINVER < 0x0600
 	#define TGT_SSCANF sscanf
