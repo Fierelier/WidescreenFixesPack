@@ -1,4 +1,6 @@
 function setpaths(gamepath, exepath, scriptspath)
+   return
+   --[[
    scriptspath = scriptspath or "scripts/"
    if (gamepath) then
       cmdcopy = { "set \"path=" .. gamepath .. scriptspath .. "\"" }
@@ -12,6 +14,7 @@ function setpaths(gamepath, exepath, scriptspath)
       end
    end
    targetdir ("data/%{prj.name}/" .. scriptspath)
+   ]]--
 end
 
 function setbuildpaths_psp(gamepath, exepath, scriptspath, pspsdkpath, sourcepath, prj_name)
