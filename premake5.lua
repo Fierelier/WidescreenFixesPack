@@ -166,6 +166,7 @@ function CommonWorkspaceSetup(platform, prefix)
           links { "stdc++exp" }
           linkoptions { "-static-libgcc", "-static-libstdc++" }
       filter {}
+	  flags { "NoImportLib" }
       multiprocessorcompile ("On")
 
       kind "SharedLib"
