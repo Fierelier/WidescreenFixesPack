@@ -1,15 +1,20 @@
-module;
 
 #include <stdafx.h>
 #include <d3d9.h>
 #define DIRECTINPUT_VERSION 0x0700
 #include <dinput.h>
 
-export module Misc;
+#include "ComVars.h"
+#include "Compat.h"
 
-import ComVars;
-import Compat;
 
+
+// Internal linkage: this file's contents were a non-exported module
+// purview under C++20 modules and must stay private to this translation
+// unit now that it's a plain .cpp, to avoid symbol collisions with other
+// files (e.g. two files each defining their own `Init()`).
+namespace
+{
 SafetyHookInline shsub_5A0B50 = {};
 void __cdecl sub_5A0B50(int a1, int a2)
 {
@@ -41,98 +46,115 @@ namespace DamageFix
     #define g_AttachmentVBMemoryPool_Val *reinterpret_cast<uint32_t*>(ptr_g_AttachmentVBMemoryPool)
     #define g_AttachmentMemoryPool_Val *reinterpret_cast<uint32_t*>(ptr_g_AttachmentMemoryPool)
 
-    void __declspec(naked) DamagePublic_Init()
+    // Converted from a __declspec(naked) MASM block. Every referenced global
+    // is passed in as an extended-asm memory operand instead of relying on
+    // the MSVC inline assembler's "bare name accesses the C variable"
+    // behavior, so no symbol-mangling/linkage tricks are needed to port it.
+    void __attribute__((naked)) DamagePublic_Init()
     {
-        // clang-format off
-        _asm
-        {
-            push    ebx
-            push    esi
-            call    bGetFreeMemoryPoolNum; bGetFreeMemoryPoolNum(void)
-            xor ebx, ebx
-            push    ebx; allocation_params
-            push    1000000h; size
-            mov ebx, ptr_g_AttachmentVBMemoryPool
-            mov     dword ptr[ebx], eax; int g_AttachmentVBMemoryPool
-            call    bWareMalloc; bWareMalloc(int, char const*, int, int)
-            mov ptrDamageVBPool, eax
-            mov edx, ptr_g_AttachmentVBMemoryPool
-            mov     edx, dword ptr[edx]; memory
-            mov     ecx, edx
-            shl     ecx, 4
-            add     ecx, MemoryPoolInfoTable; MemoryPoolInfo* MemoryPoolInfoTable
-            mov[ecx + 1], bl
-            mov     dword ptr[ecx + 4], 0FFFFFFFFh
-            mov     dword ptr[ecx + 8], 10h
-            mov     ecx, edx
-            imul    ecx, 7Ch; '|'; mempool
-            add     esp, 8
-            push    aDamagevbpool; "DamageVBPool"
-            push    1000000h; memory_size
-            mov esi, MemoryPoolMem
-            lea     esi, dword ptr[esi + ecx]
-            push    eax; memory
-            mov eax, MemoryPools
-            mov     dword ptr[eax + edx * 4], esi; MemoryPool** MemoryPools
-            call    MemoryPool_Init; MemoryPool::Init(void*, int, char const*)
-            mov eax, ptr_g_AttachmentVBMemoryPool
-            mov eax, dword ptr[eax]
-            mov     esi, eax
-            and eax, 1Fh
-            or eax, 40h
-            push    eax; allocation_params
-            push    10h; size
-            call    bWareMalloc; bWareMalloc(int, char const*, int, int)
-            mov edx, MemoryPools
-            mov     edx, dword ptr[edx + esi * 4]; MemoryPool** MemoryPools
-            push    eax
-            mov[edx + 45h], bl
-            call    ptrbFree; bFree(void*)
-            call    bGetFreeMemoryPoolNum; bGetFreeMemoryPoolNum(void)
-            push    ebx; allocation_params
-            push    700000h; size
-            mov ebx, ptr_g_AttachmentMemoryPool
-            mov dword ptr[ebx], eax
-            call    bWareMalloc; bWareMalloc(int, char const*, int, int)
-            mov ptrDamagePool, eax
-            mov edx, ptr_g_AttachmentMemoryPool
-            mov edx, dword ptr[edx]
-            mov     ecx, edx
-            shl     ecx, 4
-            add     ecx, MemoryPoolInfoTable; MemoryPoolInfo* MemoryPoolInfoTable
-            mov[ecx + 1], bl
-            mov     dword ptr[ecx + 4], 0FFFFFFFFh
-            mov     dword ptr[ecx + 8], 10h
-            mov     ecx, edx
-            imul    ecx, 7Ch; '|'; mempool
-            add     esp, 14h
-            push    aDamagepool; "DamagePool"
-            push    700000h; memory_size
-            mov esi, MemoryPoolMem
-            lea     esi, dword ptr[esi + ecx]
-            push    eax; memory
-            mov eax, MemoryPools
-            mov     dword ptr[eax + edx * 4], esi; MemoryPool** MemoryPools
-            call    MemoryPool_Init; MemoryPool::Init(void*, int, char const*)
-            mov eax, ptr_g_AttachmentMemoryPool
-            mov eax, dword ptr[eax]
-            mov     esi, eax
-            and eax, 1Fh
-            or eax, 40h
-            push    eax; allocation_params
-            push    10h; size
-            call    bWareMalloc; bWareMalloc(int, char const*, int, int)
-            mov edx, MemoryPools
-            mov     edx, dword ptr[edx + esi * 4]; MemoryPool** MemoryPools
-            push    eax
-            mov[edx + 45h], bl
-            call    ptrbFree; bFree(void*)
-            add     esp, 0Ch
-            pop     esi
-            pop     ebx
-            retn
-        }
-        // clang-format on
+        // NOTE: with ".intel_syntax noprefix" active, GCC's extended-asm %N
+        // substitution still emits a bare symbol/address for an "m"
+        // operand, not a dereference. Every reference below is therefore
+        // wrapped in "[...]" (or "dword ptr [...]" for call/push targets)
+        // to force an actual memory read/indirect call, matching what the
+        // MASM source did implicitly for named data symbols.
+        __asm__ __volatile__
+        (
+            ".intel_syntax noprefix\n\t"
+            "push ebx\n\t"
+            "push esi\n\t"
+            "call dword ptr [%2]\n\t"
+            "xor ebx, ebx\n\t"
+            "push ebx\n\t"
+            "push 0x1000000\n\t"
+            "mov ebx, [%3]\n\t"
+            "mov dword ptr [ebx], eax\n\t"
+            "call dword ptr [%9]\n\t"
+            "mov [%0], eax\n\t"
+            "mov edx, [%3]\n\t"
+            "mov edx, dword ptr [edx]\n\t"
+            "mov ecx, edx\n\t"
+            "shl ecx, 4\n\t"
+            "add ecx, [%4]\n\t"
+            "mov [ecx + 1], bl\n\t"
+            "mov dword ptr [ecx + 4], 0xFFFFFFFF\n\t"
+            "mov dword ptr [ecx + 8], 0x10\n\t"
+            "mov ecx, edx\n\t"
+            "imul ecx, 0x7C\n\t"
+            "add esp, 8\n\t"
+            "push dword ptr [%5]\n\t"
+            "push 0x1000000\n\t"
+            "mov esi, [%6]\n\t"
+            "lea esi, [esi + ecx]\n\t"
+            "push eax\n\t"
+            "mov eax, [%7]\n\t"
+            "mov dword ptr [eax + edx*4], esi\n\t"
+            "call dword ptr [%8]\n\t"
+            "mov eax, [%3]\n\t"
+            "mov eax, dword ptr [eax]\n\t"
+            "mov esi, eax\n\t"
+            "and eax, 0x1F\n\t"
+            "or eax, 0x40\n\t"
+            "push eax\n\t"
+            "push 0x10\n\t"
+            "call dword ptr [%9]\n\t"
+            "mov edx, [%7]\n\t"
+            "mov edx, dword ptr [edx + esi*4]\n\t"
+            "push eax\n\t"
+            "mov [edx + 0x45], bl\n\t"
+            "call dword ptr [%10]\n\t"
+            "call dword ptr [%2]\n\t"
+            "push ebx\n\t"
+            "push 0x700000\n\t"
+            "mov ebx, [%11]\n\t"
+            "mov dword ptr [ebx], eax\n\t"
+            "call dword ptr [%9]\n\t"
+            "mov [%1], eax\n\t"
+            "mov edx, [%11]\n\t"
+            "mov edx, dword ptr [edx]\n\t"
+            "mov ecx, edx\n\t"
+            "shl ecx, 4\n\t"
+            "add ecx, [%4]\n\t"
+            "mov [ecx + 1], bl\n\t"
+            "mov dword ptr [ecx + 4], 0xFFFFFFFF\n\t"
+            "mov dword ptr [ecx + 8], 0x10\n\t"
+            "mov ecx, edx\n\t"
+            "imul ecx, 0x7C\n\t"
+            "add esp, 0x14\n\t"
+            "push dword ptr [%12]\n\t"
+            "push 0x700000\n\t"
+            "mov esi, [%6]\n\t"
+            "lea esi, [esi + ecx]\n\t"
+            "push eax\n\t"
+            "mov eax, [%7]\n\t"
+            "mov dword ptr [eax + edx*4], esi\n\t"
+            "call dword ptr [%8]\n\t"
+            "mov eax, [%11]\n\t"
+            "mov eax, dword ptr [eax]\n\t"
+            "mov esi, eax\n\t"
+            "and eax, 0x1F\n\t"
+            "or eax, 0x40\n\t"
+            "push eax\n\t"
+            "push 0x10\n\t"
+            "call dword ptr [%9]\n\t"
+            "mov edx, [%7]\n\t"
+            "mov edx, dword ptr [edx + esi*4]\n\t"
+            "push eax\n\t"
+            "mov [edx + 0x45], bl\n\t"
+            "call dword ptr [%10]\n\t"
+            "add esp, 0x0C\n\t"
+            "pop esi\n\t"
+            "pop ebx\n\t"
+            "ret\n\t"
+            ".att_syntax prefix\n\t"
+            : "=m" (ptrDamageVBPool), "=m" (ptrDamagePool)
+            : "m" (bGetFreeMemoryPoolNum), "m" (ptr_g_AttachmentVBMemoryPool),
+              "m" (MemoryPoolInfoTable), "m" (aDamagevbpool),
+              "m" (MemoryPoolMem), "m" (MemoryPools),
+              "m" (MemoryPool_Init), "m" (bWareMalloc),
+              "m" (ptrbFree), "m" (ptr_g_AttachmentMemoryPool),
+              "m" (aDamagepool)
+        );
     }
 
     bool bReInitFlag = false;
@@ -224,8 +246,17 @@ namespace DamageFix
 }
 
 static bool bAccessedPostRace;
-uint32_t StuffToCompare = 0;
-bool __stdcall memory_readable(void* ptr, size_t byteCount)
+// Explicit asm("...") names below give these symbols a fixed, unmangled,
+// undecorated linker name we can reference by bare identifier from raw
+// asm text, without relying on (and hand-tracking) platform-specific C
+// name decoration rules. The C++-visible identifiers (StuffToCompare,
+// memory_readable, FEScriptFixExit) are unchanged for use elsewhere in
+// this file.
+uint32_t StuffToCompare asm("wfp_fescript_stuffToCompare") = 0;
+
+__attribute__((used))
+bool memory_readable(void* ptr, size_t byteCount) asm("wfp_fescript_memory_readable");
+bool memory_readable(void* ptr, size_t byteCount)
 {
     MEMORY_BASIC_INFORMATION mbi;
     if (VirtualQuery(ptr, &mbi, sizeof(MEMORY_BASIC_INFORMATION)) == 0)
@@ -250,24 +281,35 @@ bool __stdcall memory_readable(void* ptr, size_t byteCount)
     return true;
 }
 
-uint32_t FEScriptFixExit;
-void __declspec(naked) FEScriptMemoryCheck()
+uint32_t FEScriptFixExit asm("wfp_fescript_fixExit");
+
+// The whole body is a single operand-free asm statement -- including the
+// call to memory_readable -- on purpose. GCC's naked-function docs say a
+// naked function's body should consist entirely of asm; mixing in a real
+// C++ call (as an earlier version of this function did) makes the
+// compiler emit ordinary call-sequence code (stack alignment/spills) with
+// no established frame to hold it, corrupting the stack so the final
+// "ret" jumps to garbage. Doing the call in raw asm avoids that entirely.
+void __attribute__((naked)) FEScriptMemoryCheck()
 {
-    _asm
-    {
-        push edi
-        mov edi, [esp + 8]
-        mov StuffToCompare, edi
-    }
-
-    if (memory_readable((void*)StuffToCompare, 8))
-        _asm jmp FEScriptFixExit
-
-    _asm
-    {
-        pop edi
-        retn
-    }
+    __asm__ __volatile__
+    (
+        ".intel_syntax noprefix\n\t"
+        "push edi\n\t"
+        "mov edi, [esp + 8]\n\t"
+        "mov dword ptr [wfp_fescript_stuffToCompare], edi\n\t"
+        "push 8\n\t"
+        "push edi\n\t"
+        "call wfp_fescript_memory_readable\n\t"
+        "add esp, 8\n\t"
+        "test al, al\n\t"
+        "jz 1f\n\t"
+        "jmp dword ptr [wfp_fescript_fixExit]\n\t"
+        "1:\n\t"
+        "pop edi\n\t"
+        "ret\n\t"
+        ".att_syntax prefix\n\t"
+    );
 }
 
 uint32_t* dword_AC6ED4 = (uint32_t*)0x00AC6ED4;
@@ -278,7 +320,7 @@ void(__thiscall* XSpriteManager_DrawBatch)(void* that, void* view) = (void(__thi
 void __stdcall XSpriteManager_DrawBatch_Hook(void* view)
 {
     void* that;
-    _asm mov that, ecx
+    __asm__ __volatile__ ("mov %%ecx, %0" : "=r" (that));
 
     bInSparkRender = true;
     XSpriteManager_DrawBatch(that, view);
@@ -288,7 +330,7 @@ void __stdcall XSpriteManager_DrawBatch_Hook(void* view)
 void __stdcall sub_706550_hook(void* texture)
 {
     void* that;
-    _asm mov that, ecx
+    __asm__ __volatile__ ("mov %%ecx, %0" : "=r" (that));
 
     sub_706550(that, texture);
     if (bInSparkRender)
@@ -302,7 +344,7 @@ uintptr_t SinglePlayerPostRaceStateManager_HandleScreenConstructed = 0x5A7750;
 void __stdcall SinglePlayerPostRaceStateManager_HandleScreenConstructed_Hook()
 {
     uintptr_t that;
-    _asm mov that, ecx
+    __asm__ __volatile__ ("mov %%ecx, %0" : "=r" (that));
 
     reinterpret_cast<void(__thiscall*)(uintptr_t)>(SinglePlayerPostRaceStateManager_HandleScreenConstructed)(that);
 
@@ -314,7 +356,7 @@ uintptr_t OnlinePostRaceStateManager_HandleScreenConstructed = 0x5FA460;
 void __stdcall OnlinePostRaceStateManager_HandleScreenConstructed_Hook()
 {
     uintptr_t that;
-    _asm mov that, ecx
+    __asm__ __volatile__ ("mov %%ecx, %0" : "=r" (that));
 
     reinterpret_cast<void(__thiscall*)(uintptr_t)>(OnlinePostRaceStateManager_HandleScreenConstructed)(that);
 
@@ -327,14 +369,16 @@ int32_t RetZero()
     return 0;
 }
 
-void __declspec(naked) UpdateAchievements_Hook()
+void __attribute__((naked)) UpdateAchievements_Hook()
 {
-    _asm
-    {
-        pop eax
-        pop eax
-        ret
-    }
+    __asm__ __volatile__
+    (
+        ".intel_syntax noprefix\n\t"
+        "pop eax\n\t"
+        "pop eax\n\t"
+        "ret\n\t"
+        ".att_syntax prefix\n\t"
+    );
 }
 
 namespace LANFix
@@ -351,7 +395,7 @@ namespace LANFix
     bool __stdcall DataConnectionHook(char* addr, void* unk)
     {
         uintptr_t that;
-        _asm mov that, ecx
+        __asm__ __volatile__ ("mov %%ecx, %0" : "=r" (that));
 
         // attempt to detect address family
         AddrFamily = CheckAddressFamily(addr);
@@ -388,7 +432,7 @@ namespace OnlineInputBlocker
     void __stdcall GameDevice_PollDevice_Hook()
     {
         uintptr_t that;
-        _asm mov that, ecx
+        __asm__ __volatile__ ("mov %%ecx, %0" : "=r" (that));
 
         if (!bPollingEnabledOnline)
             return;
@@ -400,7 +444,7 @@ namespace OnlineInputBlocker
     uint32_t __stdcall SteeringWheelDevice_PollDevice_Hook()
     {
         uintptr_t that;
-        _asm mov that, ecx
+        __asm__ __volatile__ ("mov %%ecx, %0" : "=r" (that));
 
         if (!bPollingEnabledOnline)
             return 0;
@@ -500,14 +544,14 @@ public:
                 for (auto s : list)
                 {
                     ScreenRes r;
-                    sscanf_s(s.c_str(), "%dx%d", &r.ResX, &r.ResY);
+                    TGT_SSCANF(s.c_str(), "%dx%d", &r.ResX, &r.ResY);
                     list2.emplace_back(r);
                 }
 
                 auto pattern = hook::pattern("83 C0 08 83 F8 58 72 E8 E9 ? ? ? ? 8B 53 3C 8B 43 10"); //0x70B3F0
                 injector::WriteMemory(pattern.get_first(-0x6), &list2[0].ResX, true); //0x70B3EA
                 injector::WriteMemory(pattern.get_first(-0xE), &list2[0].ResY, true); //0x70B3E2
-                injector::WriteMemory<uint8_t>(pattern.get_first(0x5), 0xFFi8, true); //0x70B3F5
+                injector::WriteMemory<uint8_t>(pattern.get_first(0x5), (int8_t)0xFF, true); //0x70B3F5
             }
 
             if (bAntiTrackStreamerCrash)
@@ -566,10 +610,6 @@ public:
                     uintptr_t vTableOnline = reinterpret_cast<uintptr_t>(hook::pattern("C7 86 CC 00 00 00 ? ? ? ? C7 06 ? ? ? ? C7 86 CC 00 00 00 ? ? ? ? C7 86 D0 00 00").get_first(0)) + 0xC;
                     uintptr_t vTableOnlineLoc = *reinterpret_cast<uintptr_t*>(vTableOnline) + 0x128;
 
-                    SinglePlayerPostRaceStateManager_HandleScreenConstructed = *reinterpret_cast<uintptr_t*>(vTableLoc);
-                    OnlinePostRaceStateManager_HandleScreenConstructed = *reinterpret_cast<uintptr_t*>(vTableOnlineLoc);
-
-                    // skip shadow & stat uploading to avoid memory leaks
                     injector::MakeNOP(loc_5A783C, 2, true);
                     injector::MakeJMP(loc_5A7845, loc_5A788A, true);
                     // fix FEPostRaceStateManager::mbScreenConstructed from not being set after the screen's constructed
@@ -678,7 +718,7 @@ public:
                     {
                         fScreenAspectRatio = (static_cast<float>(ResX) / static_cast<float>(ResY)) * 0.5625f;
                         auto f = regs.xmm0.f32[0];
-                        _asm { fld dword ptr ds : [f] }
+                        __asm__ __volatile__ ("flds %0" : : "m" (f));
                     }
                 }; injector::MakeInline<AspectRatioHook>(pattern.get_first(8), pattern.get_first(16)); // 4BCB35
 
@@ -751,11 +791,12 @@ public:
                     {
                         void operator()(injector::reg_pack& regs)
                         {
-                            _asm
-                            {
-                                fdivr qword ptr ds : [dbl_HUDWidth]
-                                fdiv dword ptr ds : [fScreenAspectRatio]
-                            }
+                            __asm__ __volatile__
+                            (
+                                "fdivrl %0\n\t"
+                                "fdivs %1"
+                                : : "m" (dbl_HUDWidth), "m" (fScreenAspectRatio)
+                            );
                         }
                     }; injector::MakeInline<HUDWidthHook>(pattern.get_first(0), pattern.get_first(6)); // 4B44F6
                 }
@@ -797,7 +838,7 @@ public:
                             FMVWidthLeft = CalcWidth1 / fScreenAspectRatio;
                             FMVWidthRight = CalcWidth2 / fScreenAspectRatio;
 
-                            _asm cmp byte ptr ds : [espB0] , 0x00;
+                            __asm__ __volatile__ ("cmpb $0, %0" : : "m" (espB0));
                         }
                     }; injector::MakeInline<FMVHook>(pattern.get_first(0), pattern.get_first(8)); // 70235A
 
@@ -1290,3 +1331,5 @@ public:
         };
     }
 } Misc;
+
+} // anonymous namespace

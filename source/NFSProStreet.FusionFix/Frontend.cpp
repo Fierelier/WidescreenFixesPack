@@ -1,12 +1,17 @@
-module;
 
 #include <stdafx.h>
 #include <d3d9.h>
 
-export module Frontend;
+#include "ComVars.h"
 
-import ComVars;
 
+
+// Internal linkage: this file's contents were a non-exported module
+// purview under C++20 modules and must stay private to this translation
+// unit now that it's a plain .cpp, to avoid symbol collisions with other
+// files (e.g. two files each defining their own `Init()`).
+namespace
+{
 namespace FE
 {
     namespace Object
@@ -190,3 +195,5 @@ public:
         };
     }
 } Frontend;
+
+} // anonymous namespace

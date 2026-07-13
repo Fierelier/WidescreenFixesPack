@@ -13,12 +13,13 @@ Plugins ~~to make or improve widescreen resolutions support in PC games, add mor
 
 You can find the resulting files in `data/*.WidescreenFix/scripts`.
 
-The following GAMEs are supported:
+The following SUITEs are supported:
 
-- NFSUnderground
-- NFSUnderground2
-- NFSMostWanted
-- NFSCarbon
+- NFSUnderground.WidescreenFix
+- NFSUnderground2.WidescreenFix
+- NFSMostWanted.WidescreenFix
+- NFSCarbon.WidescreenFix
+- NFSProStreet.FusionFix
 
 ## Premake 5
 
@@ -33,12 +34,12 @@ Requirements:
 wine premake5.exe gmake
 ./patch-makefiles.sh
 cd build
-GAME=NFSUnderground
+SUITE=NFSUnderground.WidescreenFix
 export AR=i686-w64-mingw32-ar
 export CC=i686-w64-mingw32-gcc
 export CXX=i686-w64-mingw32-g++
 export RESCOMP=i686-w64-mingw32-windres
-make -j$(nproc) -f $GAME.WidescreenFix.make
+make -j$(nproc) -f $SUITE.make # add config=debug_win32 for debug
 ```
 
 ## sh
@@ -52,8 +53,8 @@ Requirements:
 
 ```sh
 cd build_alt
-GAME=NFSUnderground
-./$GAME.WidescreenFix.sh
+SUITE=NFSUnderground.WidescreenFix
+./$SUITE.sh # or debug_$SUITE.sh, for debug
 ```
 
 # XP Support
@@ -62,7 +63,7 @@ To enable XP support, edit `include/targetver.h` and change `#define WINVER 0x06
 
 # How to Report Crashes
 
-Open an issue. Don't bother sending crash dumps, I can't read that shit.
+Open an issue. Try to send some sort of useful crashdump, preferably use a debug .asi.
 
 # Trash
 - How to search for evil: `grep -rnE '\b(fopen_s|freopen_s|tmpfile_s|tmpnam_s|fprintf_s|fscanf_s|printf_s|scanf_s|snprintf_s|sprintf_s|sscanf_s|vfprintf_s|vfscanf_s|vprintf_s|vscanf_s|vsnprintf_s|vsprintf_s|vsscanf_s|gets_s|strcpy_s|strncpy_s|strcat_s|strncat_s|strtok_s|strerror_s|strerrorlen_s|memcpy_s|memmove_s|memset_s|wcscpy_s|wcsncpy_s|wcscat_s|wcsncat_s|wcstok_s|wmemcpy_s|wmemmove_s|wcrtomb_s|mbstowcs_s|wcstombs_s|mbsrtowcs_s|wcsrtombs_s|swprintf_s|vswprintf_s|fwprintf_s|fwscanf_s|swscanf_s|vfwprintf_s|vfwscanf_s|vwprintf_s|vwscanf_s|wprintf_s|wscanf_s|bsearch_s|qsort_s|wctomb_s|getenv_s|asctime_s|ctime_s|localtime_s|gmtime_s)\s*\(' .`
