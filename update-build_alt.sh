@@ -20,6 +20,7 @@ add_concurrency() {
 concurrent_wait
 " "$1"
 	tac_inplace "$1"
+	echo "concurrent_wait" >> "$1"
 }
 
 produce_sh() {
