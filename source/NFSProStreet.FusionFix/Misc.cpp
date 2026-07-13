@@ -281,6 +281,7 @@ bool memory_readable(void* ptr, size_t byteCount)
     return true;
 }
 
+__attribute__((used))
 uint32_t FEScriptFixExit asm("wfp_fescript_fixExit");
 
 // The whole body is a single operand-free asm statement -- including the
