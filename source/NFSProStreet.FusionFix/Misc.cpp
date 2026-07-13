@@ -836,6 +836,11 @@ public:
                                 float widthMag = (fScreenAspectRatio >= 1.0f) ? (1.0f / fScreenAspectRatio) : 1.0f;
                                 float heightMag = (fScreenAspectRatio >= 1.0f) ? 1.0f : fScreenAspectRatio;
 
+                                CalcWidth1 = -widthMag * FEScale::fFMVScale;
+                                CalcWidth2 = widthMag * FEScale::fFMVScale;
+                                CalcHeight1 = heightMag * FEScale::fFMVScale;
+                                CalcHeight2 = -heightMag * FEScale::fFMVScale;
+
                                 FMVWidthLeft = CalcWidth1;
                                 FMVWidthRight = CalcWidth2;
                             }
