@@ -18,6 +18,7 @@ The following GAMEs are supported:
 - NFSUnderground
 - NFSUnderground2
 - NFSMostWanted
+- NFSCarbon
 
 ## Premake 5
 

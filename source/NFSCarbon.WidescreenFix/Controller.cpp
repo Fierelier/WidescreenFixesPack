@@ -1,13 +1,12 @@
-module;
-
 #include <stdafx.h>
 #include "usercall.hpp"
 #define DIRECTINPUT_VERSION 0x0700
 #include <dinput.h>
 
-export module Controller;
+#include "ComVars.h"
 
-import ComVars;
+namespace
+{
 
 SafetyHookInline shsub_585290 = {};
 void __cdecl sub_585290(int a1, int a2)
@@ -125,7 +124,7 @@ namespace cFEng
             void* Function = nullptr;
         };
 
-        FEObjectCallbackStruct callback = { nullptr, &cb };
+        FEObjectCallbackStruct callback = { nullptr, (void*)&cb };
         void* cbpointer = &callback;
 
         uintptr_t current = *reinterpret_cast<uintptr_t*>(reinterpret_cast<uintptr_t>(cFEng) + 0xE0);
@@ -263,7 +262,7 @@ public:
                         if (it != Texts.end())
                         {
                             const std::string& text = (nImproveGamepadSupport != 2) ? TextsXBOX[i] : TextsPS[i];
-                            strcpy_s(pszStr, text.length() + 1, text.c_str());
+                            TGT_STRCPY(pszStr, text.length() + 1, text.c_str());
                         }
                     }
                 }; injector::MakeInline<Buttons>(pattern.get_first(16));
@@ -429,3 +428,5 @@ public:
         };
     }
 } Controller;
+
+} // anonymous namespace

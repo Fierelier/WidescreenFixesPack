@@ -1,10 +1,9 @@
-module;
-
 #include <stdafx.h>
 
-export module NOSTrailFix;
+#include "ComVars.h"
 
-import ComVars;
+namespace
+{
 
 float NOSTrailPositionScalar = 0.3f;
 constexpr float NOSTargetFPS = 60.0f; // original FPS we're targeting from. Consoles target 60 but run at 30, hence have longer trails than PC. Targeting 60 is smarter due to less issues with shorter trails. Use SimRate -2 to get the same effect as console versions.
@@ -82,3 +81,5 @@ public:
         };
     }
 } NOSTrailFix;
+
+} // anonymous namespace

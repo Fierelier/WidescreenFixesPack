@@ -1,11 +1,10 @@
-module;
-
 #include <stdafx.h>
 #include <d3d9.h>
 
-export module XenonEffectFix;
+#include "ComVars.h"
 
-import ComVars;
+namespace
+{
 
 injector::hook_back<void(__fastcall*)(void*, void*, void*)> hb_sub_723380;
 void __fastcall sub_723380(void* _this, void* edx, void* a2)
@@ -32,3 +31,5 @@ public:
         };
     }
 } XenonEffectFix;
+
+} // anonymous namespace

@@ -1,10 +1,14 @@
-module;
-
 #include <stdafx.h>
 
-export module Resolution;
+#include "ComVars.h"
 
-import ComVars;
+#include "Resolution.h"
+
+// Internal linkage: everything in this file besides GetRes()/GetAspectRatio()
+// is implementation detail (matching what used to be non-exported
+// module-linkage content) and must stay private to this translation unit.
+namespace
+{
 
 using FEString = void;
 
@@ -94,7 +98,7 @@ char __cdecl GetLocalizedWideString(wchar_t* out, int size, int hash)
         if (auto it = ResListText.find(hash); it != ResListText.end())
         {
             std::wstring ws(it->second.begin(), it->second.end());
-            wcscpy_s(out, std::min(size, int(ws.size()) + 1), ws.c_str());
+            TGT_WCSCPY(out, std::min(size, int(ws.size()) + 1), ws.c_str());
             return 1;
         }
     }
@@ -199,16 +203,21 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
     return shWndProc.unsafe_stdcall<LRESULT>(hWnd, Msg, wParam, lParam);
 }
 
-export std::pair<int, int> GetRes()
+} // anonymous namespace
+
+std::pair<int, int> GetRes()
 {
     return { cachedWidth, cachedHeight };
 }
 
-export float GetAspectRatio()
+float GetAspectRatio()
 {
     auto [Width, Height] = GetRes();
     return static_cast<float>(Width) / static_cast<float>(Height);
 }
+
+namespace
+{
 
 class Resolution
 {
@@ -353,3 +362,5 @@ public:
         };
     }
 } Resolution;
+
+} // anonymous namespace

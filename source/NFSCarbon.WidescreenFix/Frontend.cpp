@@ -1,12 +1,12 @@
-module;
-
 #include <stdafx.h>
 #include <d3d9.h>
 
-export module Frontend;
+#include "ComVars.h"
 
-import ComVars;
-import Resolution;
+#include "Resolution.h"
+
+namespace
+{
 
 namespace XtendedInput
 {
@@ -534,3 +534,5 @@ public:
         };
     }
 } Frontend;
+
+} // anonymous namespace

@@ -1,18 +1,29 @@
-module;
+#pragma once
 
 #include "stdafx.h"
 #include "d3d9.h"
 
-export module ComVars;
+// MSVC allows a non-capturing lambda to implicitly convert to a function
+// pointer of any calling convention (__cdecl/__stdcall/__fastcall). GCC/MinGW
+// does not: a lambda's conversion operator only targets the default
+// convention (__cdecl). Tag lambdas that get cast to a WINAPI (__stdcall)
+// function pointer with STDCALL_LAMBDA, placed between the parameter list
+// and the trailing return type, e.g.:
+//   [](HKEY hKey) STDCALL_LAMBDA -> LSTATUS { ... }
+#if defined(__GNUC__) && !defined(_MSC_VER)
+    #define STDCALL_LAMBDA __attribute__((stdcall))
+#else
+    #define STDCALL_LAMBDA
+#endif
 
-export struct bVector3
+struct bVector3
 {
     float x;
     float y;
     float z;
 };
 
-export struct bVector4
+struct bVector4
 {
     float x;
     float y;
@@ -20,7 +31,7 @@ export struct bVector4
     float w;
 };
 
-export struct bMatrix4
+struct bMatrix4
 {
     bVector4 v0;
     bVector4 v1;
@@ -28,7 +39,7 @@ export struct bMatrix4
     bVector4 v3;
 };
 
-export namespace cFEngGameInterface
+namespace cFEngGameInterface
 {
     struct FEMouseInfo
     {
@@ -38,50 +49,52 @@ export namespace cFEngGameInterface
         int16_t buttons;
     };
 
-    void (__stdcall* GetMouseInfo)(FEMouseInfo* info) = nullptr;
+    inline void (__stdcall* GetMouseInfo)(FEMouseInfo* info) = nullptr;
 }
 
-export struct MouseData
+struct MouseData
 {
     int   DeltaX = 0;
     int   DeltaY = 0;
     int   Wheel = 0;
-} g_Mouse;
+};
+inline MouseData g_Mouse;
 
-export struct StickData
+struct StickData
 {
     int   RawX = 0;
     int   RawY = 0;
     float X = 0.0f;
     float Y = 0.0f;
-} g_RightStick;
+};
+inline StickData g_RightStick;
 
-export bool bHideCursorForMouseLook = false;
+inline bool bHideCursorForMouseLook = false;
 
-export int SimRate = -1;
+inline int SimRate = -1;
 
-export GameRef<HWND> hWnd;
-export GameRef<uint32_t> dwWindowedMode;
-export GameRef<tagRECT> WindowRect;
-export GameRef<int> g_RacingResolution;
-export GameRef<IDirect3DDevice9*> Direct3DDevice;
-export GameRef<void*> MoviePlayerInstance;
+inline GameRef<HWND> hWnd;
+inline GameRef<uint32_t> dwWindowedMode;
+inline GameRef<tagRECT> WindowRect;
+inline GameRef<int> g_RacingResolution;
+inline GameRef<IDirect3DDevice9*> Direct3DDevice;
+inline GameRef<void*> MoviePlayerInstance;
 
-export namespace Sim
+namespace Sim
 {
     namespace Internal
     {
-        export GameRef<float> mLastFrameTime;
+        inline GameRef<float> mLastFrameTime;
     }
 }
 
-export namespace cFEng
+namespace cFEng
 {
-    void** pInstance = nullptr;
-    void (__fastcall* MakeLoadedPackagesDirty)(void*, void*) = nullptr;
+    inline void** pInstance = nullptr;
+    inline void (__fastcall* MakeLoadedPackagesDirty)(void*, void*) = nullptr;
 }
 
-export unsigned int bStringHash(const char* str)
+inline unsigned int bStringHash(const char* str)
 {
     if (!str)
         return -1;
@@ -98,9 +111,9 @@ export unsigned int bStringHash(const char* str)
     return result;
 }
 
-export namespace GameFlowManager
+namespace GameFlowManager
 {
-    bool (*IsPaused)() = nullptr;
+    inline bool (*IsPaused)() = nullptr;
 }
 
 template<typename... Args>
@@ -110,7 +123,7 @@ public:
     using WFP::Event<Args...>::Event;
 };
 
-export __declspec(noinline) ResChange<int, int>& onResChange()
+inline __declspec(noinline) ResChange<int, int>& onResChange()
 {
     static ResChange<int, int> ResChangeEvent;
     return ResChangeEvent;
@@ -123,7 +136,7 @@ struct FEMinNode
     FEMinNode* prev;
 };
 
-export enum FEObjType : int32_t
+enum FEObjType : int32_t
 {
     FE_None = 0x0,
     FE_Image = 0x1,
@@ -141,8 +154,7 @@ export enum FEObjType : int32_t
     FE_UserMin = 0x100,
 };
 
-
-export struct FEObject : FEMinNode
+struct FEObject : FEMinNode
 {
     uint32_t GUID;
     uint32_t NameHash;
@@ -158,37 +170,37 @@ export struct FEObject : FEMinNode
     //...
 };
 
-export struct FEImage : FEObject
+struct FEImage : FEObject
 {
     unsigned int ImageFlags;
 };
 
-export void* (*CreateResourceFile)(const char* filename, int32_t type, int flags, int file_offset, int file_size) = nullptr;
-export void(__fastcall* ResourceFileBeginLoading)(void* ResourceFile, void* edx, void* callback, void* callback_param) = nullptr;
-export void (__cdecl* ServiceResourceLoading)() = nullptr;
+inline void* (*CreateResourceFile)(const char* filename, int32_t type, int flags, int file_offset, int file_size) = nullptr;
+inline void(__fastcall* ResourceFileBeginLoading)(void* ResourceFile, void* edx, void* callback, void* callback_param) = nullptr;
+inline void (__cdecl* ServiceResourceLoading)() = nullptr;
 
-export namespace FEPackage
+namespace FEPackage
 {
-    char (__fastcall* ForAllObjects)(void* pPackage, void* edx, void* pCB) = nullptr;
+    inline char (__fastcall* ForAllObjects)(void* pPackage, void* edx, void* pCB) = nullptr;
 }
 
-export struct BindingSlot
+struct BindingSlot
 {
     int assignmentId;
     int unk_04;
     int unk_08;
 };
 
-export struct ActionBindingData
+struct ActionBindingData
 {
     BindingSlot* slots;
     int unk_04;
 };
 
-export ActionBindingData* gActionBindings;
-export GameRef<int> gNumControllers;
+inline ActionBindingData* gActionBindings;
+inline GameRef<int> gNumControllers;
 
-export bool IsRightStickAssignedToAnyAction()
+inline bool IsRightStickAssignedToAnyAction()
 {
     constexpr int ACTION_MIN = 0;
     constexpr int ACTION_MAX = 19;

@@ -1,10 +1,9 @@
-module;
-
 #include <stdafx.h>
 
-export module ContrailHook;
+#include "ComVars.h"
 
-import ComVars;
+namespace
+{
 
 class ContrailHook
 {
@@ -98,3 +97,5 @@ public:
         };
     }
 } ContrailHook;
+
+} // anonymous namespace

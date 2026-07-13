@@ -1,49 +1,60 @@
-module;
-
 #include <stdafx.h>
 
-export module LightingFixMirror;
+#include "ComVars.h"
 
-import ComVars;
-
-uint32_t* LightingFixUpdateMirrorCave_Exit = (uint32_t*)0x00748C5D;
-uint32_t* sub_713AA0 = (uint32_t*)0x713AA0;
-uint32_t* sub_713A30 = (uint32_t*)0x713A30;
-uint32_t* ptr_dword_AB095C = (uint32_t*)0x00AB095C;
-uint32_t* ptr_dword_AB0914 = (uint32_t*)0x00AB0914;
-
-void __declspec(naked) LightingFixUpdateMirrorCave()
-{
-    _asm
-    {
-        cmp dword ptr[edi + 8], 01
-        mov ecx, esi
-        jne IsMirror
-        mov eax, ds:ptr_dword_AB095C
-        mov eax, [eax]
-        push eax
-        push 0x59
-        call sub_713AA0
-        jmp ExitCode
-
-        IsMirror :
-        mov eax, ds : ptr_dword_AB0914
-            mov eax, [eax]
-            push eax
-            push 0x59
-            call sub_713AA0
-            mov eax, [esi + 0x1330]
-            test eax, eax
-            je ExitCode
-            push 0
-            push 0x80
-            mov ecx, esi
-            call sub_713A30
-
-            ExitCode :
-        jmp LightingFixUpdateMirrorCave_Exit
-    }
+// extern "C" (unmangled names, so the naked function below can reference
+// these globals by name from inline asm; naked functions only allow basic
+// asm with no operand list, so the symbols must be resolvable directly) and
+// volatile (the compiler can't see that the asm block reads these, so
+// without volatile it treats the pattern-scan writes below as dead stores
+// and optimizes the variables away entirely at -O2, breaking the link).
+extern "C" {
+    uint32_t* volatile LightingFixUpdateMirrorCave_Exit = (uint32_t*)0x00748C5D;
+    uint32_t* volatile sub_713AA0 = (uint32_t*)0x713AA0;
+    uint32_t* volatile sub_713A30 = (uint32_t*)0x713A30;
+    uint32_t* volatile ptr_dword_AB095C = (uint32_t*)0x00AB095C;
+    uint32_t* volatile ptr_dword_AB0914 = (uint32_t*)0x00AB0914;
 }
+
+// i686 Windows (32-bit, cdecl) decorates extern "C" symbols with a leading
+// underscore at the object-file level (unlike Linux ELF or x86-64 Windows).
+// The naked function below uses basic asm with no operand list, so the
+// symbol names must be spelled out as literal text and have to include that
+// underscore explicitly to match what the compiler actually emits.
+extern "C" void __attribute__((naked)) LightingFixUpdateMirrorCave()
+{
+    __asm__ __volatile__(
+        ".intel_syntax noprefix\n\t"
+        "cmp dword ptr [edi+8], 1\n\t"
+        "mov ecx, esi\n\t"
+        "jne 1f\n\t"
+        "mov eax, dword ptr [_ptr_dword_AB095C]\n\t"
+        "mov eax, [eax]\n\t"
+        "push eax\n\t"
+        "push 0x59\n\t"
+        "call dword ptr [_sub_713AA0]\n\t"
+        "jmp 2f\n\t"
+        "1:\n\t"
+        "mov eax, dword ptr [_ptr_dword_AB0914]\n\t"
+        "mov eax, [eax]\n\t"
+        "push eax\n\t"
+        "push 0x59\n\t"
+        "call dword ptr [_sub_713AA0]\n\t"
+        "mov eax, [esi+0x1330]\n\t"
+        "test eax, eax\n\t"
+        "je 2f\n\t"
+        "push 0\n\t"
+        "push 0x80\n\t"
+        "mov ecx, esi\n\t"
+        "call dword ptr [_sub_713A30]\n\t"
+        "2:\n\t"
+        "jmp dword ptr [_LightingFixUpdateMirrorCave_Exit]\n\t"
+        ".att_syntax prefix\n\t"
+    );
+}
+
+namespace
+{
 
 class LightingFixMirror
 {
@@ -82,3 +93,5 @@ public:
         };
     }
 } LightingFixMirror;
+
+} // anonymous namespace

@@ -1,10 +1,9 @@
-module;
-
 #include <stdafx.h>
 
-export module SparkHook;
+#include "ComVars.h"
 
-import ComVars;
+namespace
+{
 
 class SparkHook
 {
@@ -69,3 +68,5 @@ public:
         };
     }
 } SparkHook;
+
+} // anonymous namespace

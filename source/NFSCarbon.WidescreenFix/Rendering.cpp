@@ -1,11 +1,11 @@
-module;
-
 #include <stdafx.h>
 
-export module Rendering;
+#include "ComVars.h"
 
-import ComVars;
-import Resolution;
+#include "Resolution.h"
+
+namespace
+{
 
 class Rendering
 {
@@ -64,9 +64,9 @@ public:
                         }
 
                         if (regs.eax == 3) //if rearview mirror
-                            _asm fld ds : mirrorScale
+                            __asm__ __volatile__ ("flds %0" : : "m" (mirrorScale));
                         else
-                            _asm fld ds : ver3DScale
+                            __asm__ __volatile__ ("flds %0" : : "m" (ver3DScale));
                     }
                 }; injector::MakeInline<FOVHook>((uint32_t)dword_71B858, (uint32_t)dword_71B858 + 18);
                 injector::WriteMemory((uint32_t)dword_71B858 + 5, 0x9001F883, true); //cmp     eax, 1
@@ -91,10 +91,10 @@ public:
                     float fRainScaleX = ((0.75f / GetAspectRatio()) * (4.0f / 3.0f));
                     float esp08 = *(float*)(regs.esp + 0x08);
                     float esp10 = *(float*)(regs.esp + 0x10);
-                    _asm {fld  dword ptr[esp08]}
-                    _asm {fmul dword ptr[fRainScaleX]}
-                    _asm {fmul dword ptr[fRainDropletsScale]}
-                    _asm {fadd dword ptr[esp10]}
+                    __asm__ __volatile__ ("flds %0" : : "m" (esp08));
+                    __asm__ __volatile__ ("fmuls %0" : : "m" (fRainScaleX));
+                    __asm__ __volatile__ ("fmuls %0" : : "m" (fRainDropletsScale));
+                    __asm__ __volatile__ ("fadds %0" : : "m" (esp10));
                 }
             }; injector::MakeInline<RainDropletsHook>(pattern.get_first(0), pattern.get_first(8)); //0x722E78
 
@@ -103,8 +103,8 @@ public:
                 void operator()(injector::reg_pack& regs)
                 {
                     float esp0C = *(float*)(regs.esp + 0x0C);
-                    _asm {fmul dword ptr[fRainDropletsScale]}
-                    _asm {fadd dword ptr[esp0C]}
+                    __asm__ __volatile__ ("fmuls %0" : : "m" (fRainDropletsScale));
+                    __asm__ __volatile__ ("fadds %0" : : "m" (esp0C));
                     *(uintptr_t*)(regs.esp + 0x34) = regs.eax;
                 }
             }; injector::MakeInline<RainDropletsYScaleHook>(pattern.get_first(36), pattern.get_first(36 + 8)); //0x722E9C
@@ -149,3 +149,5 @@ public:
         };
     }
 } Rendering;
+
+} // anonymous namespace

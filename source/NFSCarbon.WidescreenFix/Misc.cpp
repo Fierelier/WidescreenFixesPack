@@ -1,11 +1,10 @@
-module;
-
 #include <stdafx.h>
 #include <d3d9.h>
 
-export module Misc;
+#include "ComVars.h"
 
-import ComVars;
+namespace
+{
 
 class Misc
 {
@@ -162,3 +161,5 @@ public:
         };
     }
 } Misc;
+
+} // anonymous namespace

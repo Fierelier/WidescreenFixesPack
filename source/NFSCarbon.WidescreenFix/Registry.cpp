@@ -1,11 +1,10 @@
-module;
-
 #include <stdafx.h>
 #include <FunctionHookMinHook.hpp>
 
-export module Registry;
+#include "ComVars.h"
 
-import ComVars;
+namespace
+{
 
 static std::filesystem::path CustomUserDir;
 static bool bUseCustomUserDir = false;
@@ -123,70 +122,70 @@ public:
                 sRegEnumKeyA = fRegEnumKeyA;
 
                 static SafetyHookInline shRegCloseKey = {};
-                shRegCloseKey = safetyhook::create_inline(RegCloseKey, static_cast<decltype(&RegCloseKey)>([](HKEY hKey) -> LSTATUS
+                shRegCloseKey = safetyhook::create_inline(RegCloseKey, static_cast<decltype(&RegCloseKey)>([](HKEY hKey) STDCALL_LAMBDA -> LSTATUS
                 {
                     if (IsCallerFromModule(GetModuleHandleA(NULL))) return sRegCloseKey(hKey);
                     return shRegCloseKey.stdcall<LSTATUS>(hKey);
                 }));
 
                 static SafetyHookInline shRegCreateKeyA = {};
-                shRegCreateKeyA = safetyhook::create_inline(RegCreateKeyA, static_cast<decltype(&RegCreateKeyA)>([](HKEY hKey, LPCSTR lpSubKey, PHKEY phkResult) -> LSTATUS
+                shRegCreateKeyA = safetyhook::create_inline(RegCreateKeyA, static_cast<decltype(&RegCreateKeyA)>([](HKEY hKey, LPCSTR lpSubKey, PHKEY phkResult) STDCALL_LAMBDA -> LSTATUS
                 {
                     if (IsCallerFromModule(GetModuleHandleA(NULL))) return sRegCreateKeyA(hKey, lpSubKey, phkResult);
                     return shRegCreateKeyA.stdcall<LSTATUS>(hKey, lpSubKey, phkResult);
                 }));
 
                 static SafetyHookInline shRegOpenKeyA = {};
-                shRegOpenKeyA = safetyhook::create_inline(RegOpenKeyA, static_cast<decltype(&RegOpenKeyA)>([](HKEY hKey, LPCSTR lpSubKey, PHKEY phkResult) -> LSTATUS
+                shRegOpenKeyA = safetyhook::create_inline(RegOpenKeyA, static_cast<decltype(&RegOpenKeyA)>([](HKEY hKey, LPCSTR lpSubKey, PHKEY phkResult) STDCALL_LAMBDA -> LSTATUS
                 {
                     if (IsCallerFromModule(GetModuleHandleA(NULL))) return sRegOpenKeyA(hKey, lpSubKey, phkResult);
                     return shRegOpenKeyA.stdcall<LSTATUS>(hKey, lpSubKey, phkResult);
                 }));
 
                 static SafetyHookInline shRegOpenKeyExA = {};
-                shRegOpenKeyExA = safetyhook::create_inline(RegOpenKeyExA, static_cast<decltype(&RegOpenKeyExA)>([](HKEY hKey, LPCSTR lpSubKey, DWORD ulOptions, REGSAM samDesired, PHKEY phkResult) -> LSTATUS
+                shRegOpenKeyExA = safetyhook::create_inline(RegOpenKeyExA, static_cast<decltype(&RegOpenKeyExA)>([](HKEY hKey, LPCSTR lpSubKey, DWORD ulOptions, REGSAM samDesired, PHKEY phkResult) STDCALL_LAMBDA -> LSTATUS
                 {
                     if (IsCallerFromModule(GetModuleHandleA(NULL))) return sRegOpenKeyExA(hKey, lpSubKey, ulOptions, samDesired, phkResult);
                     return shRegOpenKeyExA.stdcall<LSTATUS>(hKey, lpSubKey, ulOptions, samDesired, phkResult);
                 }));
 
                 static SafetyHookInline shRegCreateKeyExA = {};
-                shRegCreateKeyExA = safetyhook::create_inline(RegCreateKeyExA, static_cast<decltype(&RegCreateKeyExA)>([](HKEY hKey, LPCSTR lpSubKey, DWORD Reserved, LPSTR lpClass, DWORD dwOptions, REGSAM samDesired, CONST LPSECURITY_ATTRIBUTES lpSA, PHKEY phkResult, LPDWORD lpdwDisp) -> LSTATUS
+                shRegCreateKeyExA = safetyhook::create_inline(RegCreateKeyExA, static_cast<decltype(&RegCreateKeyExA)>([](HKEY hKey, LPCSTR lpSubKey, DWORD Reserved, LPSTR lpClass, DWORD dwOptions, REGSAM samDesired, CONST LPSECURITY_ATTRIBUTES lpSA, PHKEY phkResult, LPDWORD lpdwDisp) STDCALL_LAMBDA -> LSTATUS
                 {
                     if (IsCallerFromModule(GetModuleHandleA(NULL))) return sRegCreateKeyExA(hKey, lpSubKey, Reserved, lpClass, dwOptions, samDesired, lpSA, phkResult, lpdwDisp);
                     return shRegCreateKeyExA.stdcall<LSTATUS>(hKey, lpSubKey, Reserved, lpClass, dwOptions, samDesired, lpSA, phkResult, lpdwDisp);
                 }));
 
                 static SafetyHookInline shRegQueryValueExA = {};
-                shRegQueryValueExA = safetyhook::create_inline(RegQueryValueExA, static_cast<decltype(&RegQueryValueExA)>([](HKEY hKey, LPCSTR lpValueName, LPDWORD lpReserved, LPDWORD lpType, LPBYTE lpData, LPDWORD lpcbData) -> LSTATUS
+                shRegQueryValueExA = safetyhook::create_inline(RegQueryValueExA, static_cast<decltype(&RegQueryValueExA)>([](HKEY hKey, LPCSTR lpValueName, LPDWORD lpReserved, LPDWORD lpType, LPBYTE lpData, LPDWORD lpcbData) STDCALL_LAMBDA -> LSTATUS
                 {
                     if (IsCallerFromModule(GetModuleHandleA(NULL))) return sRegQueryValueExA(hKey, lpValueName, lpReserved, lpType, lpData, lpcbData);
                     return shRegQueryValueExA.stdcall<LSTATUS>(hKey, lpValueName, lpReserved, lpType, lpData, lpcbData);
                 }));
 
                 static SafetyHookInline shRegSetValueExA = {};
-                shRegSetValueExA = safetyhook::create_inline(RegSetValueExA, static_cast<decltype(&RegSetValueExA)>([](HKEY hKey, LPCSTR lpValueName, DWORD Reserved, DWORD dwType, const BYTE* lpData, DWORD cbData) -> LSTATUS
+                shRegSetValueExA = safetyhook::create_inline(RegSetValueExA, static_cast<decltype(&RegSetValueExA)>([](HKEY hKey, LPCSTR lpValueName, DWORD Reserved, DWORD dwType, const BYTE* lpData, DWORD cbData) STDCALL_LAMBDA -> LSTATUS
                 {
                     if (IsCallerFromModule(GetModuleHandleA(NULL))) return sRegSetValueExA(hKey, lpValueName, Reserved, dwType, lpData, cbData);
                     return shRegSetValueExA.stdcall<LSTATUS>(hKey, lpValueName, Reserved, dwType, lpData, cbData);
                 }));
 
                 static SafetyHookInline shRegQueryValueA = {};
-                shRegQueryValueA = safetyhook::create_inline(RegQueryValueA, static_cast<decltype(&RegQueryValueA)>([](HKEY hKey, LPCSTR lpSubKey, LPSTR lpData, PLONG lpcbData) -> LSTATUS
+                shRegQueryValueA = safetyhook::create_inline(RegQueryValueA, static_cast<decltype(&RegQueryValueA)>([](HKEY hKey, LPCSTR lpSubKey, LPSTR lpData, PLONG lpcbData) STDCALL_LAMBDA -> LSTATUS
                 {
                     if (IsCallerFromModule(GetModuleHandleA(NULL))) return sRegQueryValueA(hKey, lpSubKey, lpData, lpcbData);
                     return shRegQueryValueA.stdcall<LSTATUS>(hKey, lpSubKey, lpData, lpcbData);
                 }));
 
                 static SafetyHookInline shRegDeleteKeyA = {};
-                shRegDeleteKeyA = safetyhook::create_inline(RegDeleteKeyA, static_cast<decltype(&RegDeleteKeyA)>([](HKEY hKey, LPCSTR lpSubKey)->LSTATUS
+                shRegDeleteKeyA = safetyhook::create_inline(RegDeleteKeyA, static_cast<decltype(&RegDeleteKeyA)>([](HKEY hKey, LPCSTR lpSubKey) STDCALL_LAMBDA -> LSTATUS
                 {
                     if (IsCallerFromModule(GetModuleHandleA(NULL))) return sRegDeleteKeyA(hKey, lpSubKey);
                     return shRegDeleteKeyA.stdcall<LSTATUS>(hKey, lpSubKey);
                 }));
 
                 static SafetyHookInline shRegEnumKeyA = {};
-                shRegEnumKeyA = safetyhook::create_inline(RegEnumKeyA, static_cast<decltype(&RegEnumKeyA)>([](HKEY hKey, DWORD dwIndex, LPSTR lpName, DWORD cchName) -> LSTATUS
+                shRegEnumKeyA = safetyhook::create_inline(RegEnumKeyA, static_cast<decltype(&RegEnumKeyA)>([](HKEY hKey, DWORD dwIndex, LPSTR lpName, DWORD cchName) STDCALL_LAMBDA -> LSTATUS
                 {
                     if (IsCallerFromModule(GetModuleHandleA(NULL))) return sRegEnumKeyA(hKey, dwIndex, lpName, cchName);
                     return shRegEnumKeyA.stdcall<LSTATUS>(hKey, dwIndex, lpName, cchName);
@@ -365,3 +364,5 @@ public:
         };
     }
 } Registry;
+
+} // anonymous namespace
