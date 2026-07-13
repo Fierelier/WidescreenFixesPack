@@ -687,7 +687,7 @@ public:
 
             bool bFixAspectRatio = iniReader.ReadInteger("MAIN", "FixAspectRatio", 1) != 0;
             static int32_t nScaling = iniReader.ReadInteger("MAIN", "Scaling", 1);
-            bool bFMVWidescreenMode = iniReader.ReadInteger("MAIN", "FMVWidescreenMode", 1) != 0;
+            static int32_t nFMVWidescreenMode = iniReader.ReadInteger("MAIN", "FMVWidescreenMode", 1);
             FEScale::fFEScale = iniReader.ReadFloat("MAIN", "FEScale", 1.0f);
             FEScale::fCalcFEScale = FEScale::fFEScale;
             FEScale::fFMVScale = iniReader.ReadFloat("MAIN", "FMVScale", 1.0f);
@@ -810,7 +810,7 @@ public:
                     static float Height2 = -0.75f;
                     static float FMVWidthLeft, FMVWidthRight;
 
-                    if (bFMVWidescreenMode)
+                    if (nFMVWidescreenMode == 1)
                     {
                         Width1 = -1.00f;
                         Width2 = 1.00f;
@@ -831,13 +831,24 @@ public:
                         {
                             int espB0 = *(int*)(regs.esp + 0xB0);
 
-                            CalcWidth1 = Width1 * FEScale::fCalcFMVScale;
-                            CalcWidth2 = Width2 * FEScale::fCalcFMVScale;
-                            CalcHeight1 = Height1 * FEScale::fCalcFMVScale;
-                            CalcHeight2 = Height2 * FEScale::fCalcFMVScale;
+                            if (nFMVWidescreenMode == 2)
+                            {
+                                float widthMag = (fScreenAspectRatio >= 1.0f) ? (1.0f / fScreenAspectRatio) : 1.0f;
+                                float heightMag = (fScreenAspectRatio >= 1.0f) ? 1.0f : fScreenAspectRatio;
 
-                            FMVWidthLeft = CalcWidth1 / fScreenAspectRatio;
-                            FMVWidthRight = CalcWidth2 / fScreenAspectRatio;
+                                FMVWidthLeft = CalcWidth1;
+                                FMVWidthRight = CalcWidth2;
+                            }
+                            else
+                            {
+                                CalcWidth1 = Width1 * FEScale::fCalcFMVScale;
+                                CalcWidth2 = Width2 * FEScale::fCalcFMVScale;
+                                CalcHeight1 = Height1 * FEScale::fCalcFMVScale;
+                                CalcHeight2 = Height2 * FEScale::fCalcFMVScale;
+
+                                FMVWidthLeft = CalcWidth1 / fScreenAspectRatio;
+                                FMVWidthRight = CalcWidth2 / fScreenAspectRatio;
+                            }
 
                             __asm__ __volatile__ ("cmpb $0, %0" : : "m" (espB0));
                         }
