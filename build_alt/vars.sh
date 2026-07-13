@@ -11,7 +11,7 @@ if [ "$RESCOMP" = "" ]; then
 fi
 
 CONCURRENT_TASKS=0
-function concurrent() {
+concurrent() {
 	CONCURRENT_TASKS=$((CONCURRENT_TASKS + 1))
 	while [ "$CONCURRENT_TASKS" -gt "$J" ]; do
 		wait -n
@@ -20,7 +20,7 @@ function concurrent() {
 	"$@" &
 }
 
-function concurrent_wait() {
+concurrent_wait() {
 	if [ $J -gt 1 ]; then
 		wait
 	fi
