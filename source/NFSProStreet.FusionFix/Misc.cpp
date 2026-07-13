@@ -252,6 +252,7 @@ static bool bAccessedPostRace;
 // name decoration rules. The C++-visible identifiers (StuffToCompare,
 // memory_readable, FEScriptFixExit) are unchanged for use elsewhere in
 // this file.
+__attribute__((used))
 uint32_t StuffToCompare asm("wfp_fescript_stuffToCompare") = 0;
 
 __attribute__((used))
