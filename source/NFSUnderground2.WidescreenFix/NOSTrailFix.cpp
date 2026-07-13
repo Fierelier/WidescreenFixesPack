@@ -1,11 +1,13 @@
-module;
 
 #include <stdafx.h>
 
-export module NOSTrailFix;
+#include "ComVars.h"
 
-import ComVars;
 
+
+
+namespace
+{
 float fCustomNOSTrailLength = 1.0f;
 SafetyHookInline shUpdateCarStreakingFlares = {};
 void __cdecl UpdateCarStreakingFlares(void* eView)
@@ -42,3 +44,5 @@ public:
         };
     }
 } NOSTrailFix;
+
+} // anonymous namespace

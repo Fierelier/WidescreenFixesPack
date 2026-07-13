@@ -1,12 +1,13 @@
-module;
 
 #include <stdafx.h>
 #include <d3d9.h>
 
-export module Misc;
+#include "ComVars.h"
 
-import ComVars;
 
+
+namespace
+{
 namespace EAXSound
 {
     SafetyHookInline shUpdate = {};
@@ -134,3 +135,5 @@ public:
         };
     }
 } Misc;
+
+} // anonymous namespace

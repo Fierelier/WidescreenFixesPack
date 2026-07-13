@@ -464,6 +464,9 @@ project "NFSUnderground2.WidescreenFix"
    includedirs {"resources"}
    files { "source/%{prj.name}/*.fx", "source/%{prj.name}/*.ps", "source/%{prj.name}/*.rc" }
    defines { "IDR_POSTFX=201" }
+   filter "action:gmake2"
+      links { "gdi32" }
+   filter {}
    setpaths("Z:/WFP/Games/Need For Speed/Need For Speed Underground 2/", "speed2.exe")
 group ""
 

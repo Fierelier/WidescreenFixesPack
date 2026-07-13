@@ -1,14 +1,15 @@
-module;
 
 #include <stdafx.h>
 #include "usercall.hpp"
 #define DIRECTINPUT_VERSION 0x0700
 #include <dinput.h>
 
-export module Controller;
+#include "ComVars.h"
 
-import ComVars;
 
+
+namespace
+{
 SafetyHookInline shsub_50B460 = {};
 void __cdecl sub_50B460(int a1, int a2)
 {
@@ -190,7 +191,7 @@ public:
                             if (it != Texts.end())
                             {
                                 const std::wstring& text = (nImproveGamepadSupport != 2) ? TextsXBOX[i] : TextsPS[i];
-                                wcscpy_s(pszStr, text.length() + 1, text.c_str());
+                                TGT_WCSCPY(pszStr, text.length() + 1, text.c_str());
                             }
                         }
                     }
@@ -289,3 +290,5 @@ public:
         };
     }
 } Controller;
+
+} // anonymous namespace

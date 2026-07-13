@@ -1,12 +1,15 @@
-module;
 
 #include <stdafx.h>
 #include <d3d9.h>
 
-export module Frontend;
+#include "ComVars.h"
 
-import ComVars;
-import Resolution;
+
+#include "Resolution.h"
+
+
+namespace
+{
 
 std::optional<float> fHudAspectRatioConstraint;
 float fWidescreenHudOffset = 120.0f;
@@ -115,7 +118,7 @@ void LoadDatFile()
             {
                 float PosX, PosY;
                 float fOffsetX, fOffsetY;
-                sscanf_s(line.data(), "%*s %f %f %f %f", &PosX, &PosY, &fOffsetX, &fOffsetY);
+                TGT_SSCANF(line.data(), "%*s %f %f %f %f", &PosX, &PosY, &fOffsetX, &fOffsetY);
                 HudCoords.push_back(CDatEntry(PosX, PosY, fOffsetX, fOffsetY));
             }
         }
@@ -338,7 +341,7 @@ public:
                     void operator()(injector::reg_pack& regs)
                     {
                         float esi48 = 0.0f;
-                        _asm {fst dword ptr[esi48]}
+                        __asm__ __volatile__ ("fsts %0" : "=m" (esi48));
                         *(float*)(regs.esi + 0x48) = esi48;
                         regs.ecx = *(uint32_t*)(regs.esi + 0x1C);
                         regs.edx = *(uint32_t*)(regs.esi + 0x20);
@@ -359,10 +362,10 @@ public:
                         HudPos HudPosX = *(uint32_t*)(regs.edx + 0x00);
                         HudPos HudPosY = *(uint32_t*)(regs.edx + 0x04);
                         WidescreenHud(HudPosX, HudPosY);
-                        _asm {fadd dword ptr[HudPosX.fPos]}
-                        _asm {fstp dword ptr[esi00]}
+                        __asm__ __volatile__ ("fadds %0" : : "m" (HudPosX.fPos));
+                        __asm__ __volatile__ ("fstps %0" : "=m" (esi00));
                         *(float*)(regs.esi + 0x00) = esi00;
-                        _asm fld dword ptr[ecx4]
+                        __asm__ __volatile__ ("flds %0" : : "m" (ecx4));
                     }
                 }; injector::MakeInline<StopSignHook>((uint32_t)dword_5050FB, (uint32_t)dword_5050FB + 7);
 
@@ -445,3 +448,5 @@ public:
         };
     }
 } Frontend;
+
+} // anonymous namespace

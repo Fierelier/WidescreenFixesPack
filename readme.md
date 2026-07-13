@@ -11,9 +11,13 @@ Plugins ~~to make or improve widescreen resolutions support in PC games, add mor
 
 # Building
 
-**Currently, only NFSMostWanted and NFSUnderground are supported**
-
 You can find the resulting files in `data/*.WidescreenFix/scripts`.
+
+The following GAMEs are supported:
+
+- NFSUnderground
+- NFSUnderground2
+- NFSMostWanted
 
 ## Premake 5
 
@@ -28,7 +32,7 @@ Requirements:
 wine premake5.exe gmake
 ./patch-makefiles.sh
 cd build
-GAME=NFSMostWanted # or NFSUnderground
+GAME=NFSUnderground
 export AR=i686-w64-mingw32-ar
 export CC=i686-w64-mingw32-gcc
 export CXX=i686-w64-mingw32-g++
@@ -47,7 +51,7 @@ Requirements:
 
 ```sh
 cd build_alt
-GAME=NFSMostWanted # or NFSUnderground
+GAME=NFSUnderground
 ./$GAME.WidescreenFix.sh
 ```
 

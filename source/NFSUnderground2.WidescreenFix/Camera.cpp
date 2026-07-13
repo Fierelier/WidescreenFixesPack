@@ -1,12 +1,13 @@
-module;
 
 #include <stdafx.h>
 #include <cmath>
 
-export module Camera;
+#include "ComVars.h"
 
-import ComVars;
 
+
+namespace
+{
 // Offset from the game's original camera (zero = original camera)
 static float YawOffset = 0.0f;
 static float PitchOffset = 0.0f;
@@ -188,3 +189,5 @@ public:
         };
     }
 } Camera;
+
+} // anonymous namespace
