@@ -273,10 +273,16 @@ function CommonWorkspaceSetup(platform, prefix)
       filter "configurations:Debug*"
          defines "DEBUG"
          symbols "On"
+         filter "action:gmake2"
+            buildoptions { "-gdwarf-4", "-fno-omit-frame-pointer" }
+            linkoptions { "-Wl,--pdb=" }
+         filter {}
+      filter {}
 
       filter "configurations:Release*"
          defines "NDEBUG"
          optimize "On"
+      filter{}
 end
 
 -- ====================== WIN32 SOLUTION ======================
