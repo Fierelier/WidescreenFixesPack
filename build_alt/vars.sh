@@ -10,6 +10,16 @@ if [ "$RESCOMP" = "" ]; then
 	fi
 fi
 
+concurrent_nowaitn() {
+	J=1
+	echo "'wait -n' not available, disabling concurrency."
+}
+
+if [ $J -gt 1 ]; then
+    : &
+	wait -n || concurrent_nowaitn
+fi
+
 CONCURRENT_TASKS=0
 concurrent() {
 	CONCURRENT_TASKS=$((CONCURRENT_TASKS + 1))
