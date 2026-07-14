@@ -12,6 +12,7 @@ Plugins ~~to make or improve widescreen resolutions support in PC games, add mor
 # Differences to main repo
 
 - **Unavailable functionality:**
+  - Not all games are supported
   - Shader-related things like ConsoleGamma
   - DX9 paths for GTA III/VC TransparentMenu
 
