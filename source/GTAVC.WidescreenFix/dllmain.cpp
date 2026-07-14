@@ -1,8 +1,8 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include <GTA/CDraw.h>
 
-import Legacy;
-import Draw;
+#include "Legacy.h"
+#include "Draw.h"
 bool bUsingLegacy = false;
 
 void Init()

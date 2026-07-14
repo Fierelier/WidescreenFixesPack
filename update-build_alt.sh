@@ -52,3 +52,4 @@ produce_sh NFSMostWanted.WidescreenFix
 produce_sh NFSCarbon.WidescreenFix
 produce_sh NFSProStreet.FusionFix
 produce_sh GTA3.WidescreenFix
+produce_sh GTAVC.WidescreenFix

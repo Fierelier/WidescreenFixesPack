@@ -7,14 +7,14 @@
 #define DEFAULT_ASPECT_RATIO (4.0f / 3.0f)
 #define DEFAULT_VIEWWINDOW (0.7f)
 
-#define SCREEN_WIDTH ((float)RsGlobal->width)
-#define SCREEN_HEIGHT ((float)RsGlobal->height)
+#define SCREEN_WIDTH ((float)RsGlobalFix->width)
+#define SCREEN_HEIGHT ((float)RsGlobalFix->height)
 
 #define SCREEN_HEIGHT_PAL ((float)512)
 #define SCREEN_HEIGHT_NTSC ((float)448)
 
-#define SCREEN_ASPECT_RATIO (CDraw::GetAspectRatio())
-#define SCREEN_VIEWWINDOW (Tan(DEGTORAD(CDraw::GetScaledFOV() * 0.5f)))
+#define SCREEN_ASPECT_RATIO (CDrawFix::GetAspectRatio())
+#define SCREEN_VIEWWINDOW (Tan(DEGTORAD(CDrawFix::GetScaledFOV() * 0.5f)))
 
 #define SCREEN_STRETCH_X(a) ((a) * (float)SCREEN_WIDTH / DEFAULT_SCREEN_WIDTH)
 #define SCREEN_STRETCH_Y(a) ((a) * (float)SCREEN_HEIGHT / DEFAULT_SCREEN_HEIGHT)
