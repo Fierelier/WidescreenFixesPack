@@ -9,6 +9,22 @@
 Plugins ~~to make or improve widescreen resolutions support in PC games, add more features and fix bugs.~~ that do way too much.
 </div>
 
+# Differences to main repo
+
+- **Unavailable functionality:**
+  - Shader-related things like ConsoleGamma
+  - DX9 paths for GTA III/VC TransparentMenu
+
+- **Quirks:**
+  - Bigger .asi files, not sure why
+  - Probably more..?
+
+- **Fixes:**
+  - Windows XP support (the main reason for this fork existing)
+  - Dynamic menu scissoring in NFS Underground, pillarboxing crash
+  - NFS ProStreet FMV scaling on non-16:9 monitors
+  - Some games no longer use graphically taxing defaults
+
 # Building
 
 You can find the resulting files in `data/*.WidescreenFix/scripts`.
@@ -20,6 +36,7 @@ The following SUITEs are supported:
 - NFSMostWanted.WidescreenFix
 - NFSCarbon.WidescreenFix
 - NFSProStreet.FusionFix
+- GTA3.WidescreenFix
 
 ## Premake 5
 
