@@ -10,7 +10,6 @@ create_base() {
 	echo '#!/usr/bin/env sh' > "$1"
 	echo 'set -e' >> "$1"
 	echo '. ./vars.sh' >> "$1"
-	chmod +x "$1"
 }
 
 add_concurrency() {
@@ -30,10 +29,12 @@ produce_sh() {
 	create_base "../build_alt/$SUITE.sh"
 	make -f "$SUITE.make" -n >> "../build_alt/$SUITE.sh"
 	add_concurrency "../build_alt/$SUITE.sh"
+	chmod +x "../build_alt/$SUITE.sh"
 	
 	create_base "../build_alt/debug_$SUITE.sh"
 	make -f "$SUITE.make" config=debug_win32 -n >> "../build_alt/debug_$SUITE.sh"
 	add_concurrency "../build_alt/debug_$SUITE.sh"
+	chmod +x "../build_alt/debug_$SUITE.sh"
 }
 
 wine premake5.exe gmake
@@ -50,3 +51,4 @@ produce_sh NFSUnderground2.WidescreenFix
 produce_sh NFSMostWanted.WidescreenFix
 produce_sh NFSCarbon.WidescreenFix
 produce_sh NFSProStreet.FusionFix
+produce_sh GTA3.WidescreenFix
