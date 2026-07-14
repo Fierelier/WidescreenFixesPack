@@ -14,7 +14,7 @@ Plugins ~~to make or improve widescreen resolutions support in PC games, add mor
 - **Unavailable functionality:**
   - Not all games are supported
   - Shader-related things like ConsoleGamma
-  - DX9 paths for GTA III/VC TransparentMenu
+  - DX9 shader paths for GTA III/VC/SA TransparentMenu
 
 - **Quirks:**
   - Bigger .asi files, not sure why
@@ -38,6 +38,8 @@ The following SUITEs are supported:
 - NFSCarbon.WidescreenFix
 - NFSProStreet.FusionFix
 - GTA3.WidescreenFix
+- GTAVC.WidescreenFix
+- GTASA.WidescreenFix
 
 ## Premake 5
 
