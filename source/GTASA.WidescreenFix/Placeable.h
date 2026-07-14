@@ -1,10 +1,9 @@
-module;
+#pragma once
+
 #include <cstdint>
 #include "rw.h"
 
-export module Placeable;
-
-export class CSimpleTransform
+class CSimpleTransform
 {
 public:
     CVector m_translate;
@@ -41,7 +40,7 @@ public:
     }
 };
 
-export class CPlaceable
+class CPlaceable
 {
 private:
     CSimpleTransform m_transform;

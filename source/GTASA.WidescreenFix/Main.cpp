@@ -1,16 +1,15 @@
-module;
-
 #include <stdafx.h>
 #include "common.h"
 
-export module Main;
+#include "Draw.h"
+#include "Skeleton.h"
+#include "Entity.h"
+#include "CutsceneMgr.h"
 
-import Draw;
-import Skeleton;
-import Entity;
-import CutsceneMgr;
+namespace
+{
 
-export GameRef<CScene> Scene;
+GameRef<CScene> Scene;
 
 SafetyHookInline shCameraSize = {};
 void __cdecl CameraSize(RwCamera* camera, RwRect* rect, float viewWindow, float aspectRatio)
@@ -74,7 +73,7 @@ public:
 
             static auto SkyRenderingFix = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
             {
-                horizSpread = 1.4f * (CDraw::GetAspectRatio() / (4.0f / 3.0f));
+                horizSpread = 1.4f * (CDrawFix::GetAspectRatio() / (4.0f / 3.0f));
             });
 
             pattern = hook::pattern("D8 0D ? ? ? ? D9 C0 D9 44 24 ? D8 44 24");
@@ -85,7 +84,7 @@ public:
             injector::MakeNOP(pattern.get_first(), 10, true);
             static auto Process_WheelCamFOV = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
             {
-                *(float*)(regs.esi + 0xB4) = CDraw::ConvertFOVInverse(70.0f);
+                *(float*)(regs.esi + 0xB4) = CDrawFix::ConvertFOVInverse(70.0f);
             });
 
             //CCam::Process_Fixed
@@ -102,7 +101,7 @@ public:
             //
             //    if (inTransition || leadingZero)
             //    {
-            //        *(float*)(regs.edi + 0xB4) = CDraw::ConvertFOVInverse(70.0f);
+            //        *(float*)(regs.edi + 0xB4) = CDrawFix::ConvertFOVInverse(70.0f);
             //    }
             //
             //    if (inTransition)
@@ -113,3 +112,5 @@ public:
         };
     }
 } Main;
+
+}

@@ -1,104 +1,35 @@
-module;
-
-#include "stdafx.h"
-#include "GTA\common.h"
-#include "GTA\global.h"
-#include <d3d9.h>
+#include <stdafx.h>
+#include "common.h"
 #include <control.h>
 
-export module Legacy;
+#include "Skeleton.h"
+#include "Sprite2d.h"
+#include "Draw.h"
 
-float fWideScreenWidthScale, fWideScreenHeightScale;
-float fWideScreenWidthProperScale = 1.0f;
-float fWideScreenHeightProperScale = 480.0f / 448.0f;
-float fFrontendWidth[41], fFrontendHeight[41];
-float fMiscWidth[30], fMiscHeight[30];
-float fRadarWidth[23], fRadarHeight[23];
-float fHUDWidth[120], fHUDHeight[120];
-float fCameraWidth[2], fCameraHeight[2];
-float fDefaultWidth;
-float fDefaultCoords;
-float fFrontendDefaultWidth;
-bool bProportionalWeaponIcon = false;
-
-void ReadSettings()
+namespace
 {
-    CIniReader iniReader("");
-    ResX = iniReader.ReadInteger("MAIN", "ResX", -1);
-    ResY = iniReader.ReadInteger("MAIN", "ResY", -1);
-    szForceAspectRatio = iniReader.ReadString("MAIN", "ForceAspectRatio", "auto");
-    szFrontendAspectRatio = iniReader.ReadString("MAIN", "FrontendAspectRatio", "auto");
-    bDontTouchFOV = iniReader.ReadInteger("MAIN", "DontTouchFOV", 0) != 0;
-    bRestoreCutsceneFOV = iniReader.ReadInteger("MAIN", "RestoreCutsceneFOV", 1) != 0;
 
-    fHudWidthScale = iniReader.ReadFloat("MAIN", "HudWidthScale", 0.0f); fHudWidthScale == 0.0f ? fHudWidthScale = 1.0f : fHudWidthScale;
-    fHudHeightScale = iniReader.ReadFloat("MAIN", "HudHeightScale", 0.0f); fHudHeightScale == 0.0f ? fHudHeightScale = 1.0f : fHudHeightScale;
-    fRadarWidthScale = iniReader.ReadFloat("MAIN", "RadarWidthScale", 0.0f); fRadarWidthScale == 0.0f ? fRadarWidthScale = 1.0f : fRadarWidthScale;
-    fRadarHeightScale = iniReader.ReadFloat("MAIN", "RadarHeightScale", 0.0f); fRadarHeightScale == 0.0f ? fRadarHeightScale = 1.0f : fRadarHeightScale;
-    fSubtitlesScale = iniReader.ReadFloat("MAIN", "SubtitlesScale", 0.0f); fSubtitlesScale == 0.0f ? fSubtitlesScale = 1.0f : fSubtitlesScale;
-    bProportionalWeaponIcon = iniReader.ReadInteger("MAIN", "ProportionalWeaponIcon", 0) != 0;
+class CSprite2d;
 
-    bSmartCutsceneBorders = iniReader.ReadInteger("MISC", "SmartCutsceneBorders", 1) != 0;
-    bAllowAltTabbingWithoutPausing = iniReader.ReadInteger("MISC", "AllowAltTabbingWithoutPausing", 0) != 0;
-    nHideAABug = iniReader.ReadInteger("MISC", "HideAABug", 0);
-    ReplaceTextShadowWithOutline = iniReader.ReadInteger("MISC", "ReplaceTextShadowWithOutline", 0);
-    DisableWhiteCrosshairDot = iniReader.ReadInteger("MISC", "DisableWhiteCrosshairDot", 0) != 0;
-    ReplaceTextShadowWithOutline = iniReader.ReadInteger("MISC", "ReplaceTextShadowWithOutline", 0);
-}
+int(__cdecl* CSprite2dDrawRect)(class CRect const&, class CRGBA const&);
+int(__cdecl* CSprite2dDrawRect2)(class CRect const&, class CRGBA const&, class CRGBA const&, class CRGBA const&, class CRGBA const&);
 
-void GetMemoryAddresses()
-{
-    RsGlobal = (RsGlobalType*)0xC17040;
-    CDraw::pfScreenAspectRatio = (float*)0xC3EFA4;
-    CDraw::pfScreenFieldOfView = (float*)0x8D5038;
-    CSprite2dDrawRect = (int(__cdecl*)(CRect const&, CRGBA const&)) 0x727B60;
-    CSprite2dDrawRect2 = (int(__cdecl*)(CRect const&, CRGBA const&, CRGBA const&, CRGBA const&, CRGBA const&)) 0x727C10;
-    bWideScreen = (bool*)0xBA6793; BordersVar1 = (uint32_t*)0xB6F0B8; BordersVar2 = (uint32_t*)0xB6F0CC;
-    bIsInCutscene = (bool*)0xB6F065;
-}
+static float fWideScreenWidthScale, fWideScreenHeightScale;
+static float fWideScreenWidthProperScale = 1.0f;
+static float fWideScreenHeightProperScale = 480.0f / 448.0f;
+static float fFrontendWidth[41], fFrontendHeight[41];
+static float fMiscWidth[30], fMiscHeight[30];
+static float fRadarWidth[23], fRadarHeight[23];
+static float fHUDWidth[120], fHUDHeight[120];
+static float fDefaultWidth;
+static float fDefaultCoords;
+static bool bProportionalWeaponIcon = false;
 
-void OverwriteResolution()
-{
-    // Unlocked widescreen resolutions by Silent
-    injector::WriteMemory(0x745B71, 0x9090687D, true);
-    injector::WriteMemory(0x74596C, 0x9090127D, true);
-    injector::MakeNOP(0x745970, 2, true);
-    injector::MakeNOP(0x745B75, 2, true);
-    injector::MakeNOP(0x7459E1, 2, true);
-
-
-    if (ResX == -1 || ResY == -1)
-        return;
-    else if (!ResX || !ResY)
-        std::tie(ResX, ResY) = GetDesktopRes();
-
-    injector::WriteMemory(0x746362 + 0x1, ResX, true);
-    injector::WriteMemory(0x746367 + 0x1, ResY, true);
-    injector::WriteMemory(0x74636C + 0x1, 32, true);
-    injector::WriteMemory<unsigned short>(0x7462AB, 0xB2E9, true); //jz      loc_746362 > jmp      loc_746362
-    injector::WriteMemory(0x7462AB + 2, 0x00, true);
-    injector::WriteMemory<unsigned short>(0x7462B3, 0xAAE9, true);
-    injector::WriteMemory(0x7462B3 + 2, 0x00, true);
-}
-
-DWORD _EAX;
-void __declspec(naked) AllowMouseMovement()
-{
-    _asm
-    {
-        mov _EAX, eax
-        mov eax, dword ptr ds : [0x8D621C]
-        cmp eax, 0
-        jne label1
-        mov eax, _EAX
-        ret
-
-        label1 :
-        mov eax, _EAX
-            mov _EAX, 0x7453F0
-            jmp _EAX
-    }
-}
+static float fHudWidthScale, fHudHeightScale;
+static float fSubtitlesScale;
+static float fCustomWideScreenWidthScaleDown;
+static float fCustomWideScreenHeightScaleDown;
+static float fRadarWidthScale, fCustomRadarWidthScale, fRadarHeightScale, fCustomRadarHeightScale;
 
 void UpdateFrontendFixes()
 {
@@ -188,18 +119,6 @@ void UpdateFrontendFixes()
 
 void UpdateMiscFixes()
 {
-    // Aim point.
-    if (bDontTouchFOV)
-    {
-        fCameraWidth[0] = 0.017453292f;
-        fCameraHeight[0] = 0.0f;
-    }
-    else
-    {
-        fCameraWidth[0] = 0.01403292f;
-        fCameraHeight[0] = 0.0f;
-    }
-
     fMiscWidth[0] = 0.0015625f * fWideScreenWidthScale; // StretchX
     fMiscWidth[1] = 0.0546875f * fWideScreenWidthScale;
     fMiscWidth[2] = 0.0015625f;
@@ -419,7 +338,7 @@ void UpdateHUDFixes()
     fHUDWidth[105] = 0.0015625f * fWideScreenWidthScale * fHudWidthScale;
 
 
-    fHUDWidth[110] = RsGlobal->MaximumWidth * 0.17343046f * fWideScreenWidthScale * fHudWidthScale;
+    fHUDWidth[110] = RsGlobalFix->maximumWidth * 0.17343046f * fWideScreenWidthScale * fHudWidthScale;
 
     fHUDHeight[0] = 0.002232143f * fWideScreenHeightScale * fHudHeightScale;
     fHUDHeight[1] = 0.002232143f * fWideScreenHeightScale * fHudHeightScale;
@@ -539,54 +458,15 @@ void UpdateHUDFixes()
 void UpdateScriptFixes()
 {
     float w;
-    if (*CDraw::pfScreenAspectRatio < fDefaultWidth)
-        w = static_cast<float>(RsGlobal->MaximumWidth);
+    if (CDrawFix::GetAspectRatio() < fDefaultWidth)
+        w = static_cast<float>(RsGlobalFix->maximumWidth);
     else
-        w = RsGlobal->MaximumWidth * fDefaultWidth / *CDraw::pfScreenAspectRatio;
+        w = RsGlobalFix->maximumWidth * fDefaultWidth / CDrawFix::GetAspectRatio();
 
-    fDefaultCoords = 0.5f * (RsGlobal->MaximumWidth - w);
+    fDefaultCoords = 0.5f * (RsGlobalFix->maximumWidth - w);
 }
 
-template<uintptr_t addr>
-void updateScreenAspectRatioWrapper()
-{
-    using func_hook = injector::function_hooker<addr, void()>;
-    injector::make_static_hook<func_hook>([](typename func_hook::func_type updateScreenAspectRatio)
-    {
-        updateScreenAspectRatio();
-
-        fWideScreenWidthScale = 640.0f / (*CDraw::pfScreenAspectRatio * 448.0f);
-        fWideScreenHeightScale = 448.0 / 448.0f;
-        fWideScreenWidthProperScale = static_cast<float>(RsGlobal->MaximumWidth) / (*CDraw::pfScreenAspectRatio * 448.0f);
-        fWideScreenHeightProperScale = static_cast<float>(RsGlobal->MaximumHeight) / 448.0f;
-        fDefaultWidth = (4.0f / 3.0f);
-
-        UpdateFrontendFixes();
-        UpdateMiscFixes();
-        UpdateHUDFixes();
-        UpdateScriptFixes();
-    });
-}
-
-uintptr_t SetEdgeAddr = 0x719590;
-void __declspec(naked) SetDropShadowPosition()
-{
-    _asm
-    {
-        mov eax, [esp + 4]
-        cmp ReplaceTextShadowWithOutline, 2
-        jae label1
-        test eax, eax
-        jz label1
-        dec eax
-        mov[esp + 4], eax
-
-        label1 :
-        jmp SetEdgeAddr
-    }
-}
-
-constexpr const char* main_scm_tex[] = { "10ls", "10ls2", "10ls3", "10ls4", "10ls5", "10og", "10weed", "11dice", "11dice2", "11ggift", "11grov2", "11grov3", "11grove",
+static constexpr const char* main_scm_tex[] = { "10ls", "10ls2", "10ls3", "10ls4", "10ls5", "10og", "10weed", "11dice", "11dice2", "11ggift", "11grov2", "11grov3", "11grove",
                                          "11jail", "12angel", "12bndit", "12cross", "12dager", "12maybr", "12myfac", "4rip", "4spider", "4weed", "5cross", "5cross2", "5cross3", "5gun", "6africa", "6aztec",
                                          "6clown", "6crown", "7cross", "7cross2", "7cross3", "7mary", "8gun", "8poker", "8sa", "8sa2", "8sa3", "8santos", "8westsd", "9bullt", "9crown", "9gun", "9gun2", "9homby",
                                          "9rasta", "addcoin", "AirLogo", "arrow", "back2", "back3", "back4", "back5", "back6", "back7", "back8", "back8_right", "back8_top", "backbet", "backcyan", "backgnd",
@@ -613,7 +493,7 @@ constexpr const char* main_scm_tex[] = { "10ls", "10ls2", "10ls3", "10ls4", "10l
 injector::hook_back<void(__cdecl*)(CRect const&, CRGBA const&)> hbDrawRect;
 void __cdecl DrawRectHook(CRect const& rect, CRGBA  const& color)
 {
-    hbDrawRect.fun(CRect(fDefaultCoords + rect.m_fLeft * fDefaultWidth / *CDraw::pfScreenAspectRatio, rect.m_fBottom, fDefaultCoords + rect.m_fRight * fDefaultWidth / *CDraw::pfScreenAspectRatio, rect.m_fTop), color);
+    hbDrawRect.fun(CRect(fDefaultCoords + rect.left * fDefaultWidth / CDrawFix::GetAspectRatio(), rect.bottom, fDefaultCoords + rect.right * fDefaultWidth / CDrawFix::GetAspectRatio(), rect.top), color);
 }
 
 injector::hook_back<void(__fastcall*)(CSprite2d const&, int, CRect const&, CRGBA const&)> hbDraw;
@@ -623,13 +503,13 @@ void __fastcall DrawSpriteHook(CSprite2d const& sprite, int, CRect const& rect, 
 
     if (pTexture && std::find(std::begin(main_scm_tex), std::end(main_scm_tex), std::string_view((const char*)(pTexture + 0x10))) != std::end(main_scm_tex))
     {
-        hbDraw.fun(sprite, -1, CRect(fDefaultCoords + rect.m_fLeft * fDefaultWidth / *CDraw::pfScreenAspectRatio, rect.m_fBottom, fDefaultCoords + rect.m_fRight * fDefaultWidth / *CDraw::pfScreenAspectRatio, rect.m_fTop), color);
+        hbDraw.fun(sprite, -1, CRect(fDefaultCoords + rect.left * fDefaultWidth / CDrawFix::GetAspectRatio(), rect.bottom, fDefaultCoords + rect.right * fDefaultWidth / CDrawFix::GetAspectRatio(), rect.top), color);
 
-        if (rect.m_fLeft <= 0.0f && rect.m_fRight >= (float)RsGlobal->MaximumWidth * 320.0f * 0.0015625)
+        if (rect.left <= 0.0f && rect.right >= (float)RsGlobalFix->maximumWidth * 320.0f * 0.0015625)
         {
-            CSprite2dDrawRect(CRect(0.0f, (float)RsGlobal->MaximumHeight, fDefaultCoords, 0.0f), CRGBA(0, 0, 0, 255));
+            CSprite2dDrawRect(CRect(0.0f, (float)RsGlobalFix->maximumHeight, fDefaultCoords, 0.0f), CRGBA(0, 0, 0, 255));
 
-            CSprite2dDrawRect(CRect(fDefaultCoords + (float)RsGlobal->MaximumWidth * fDefaultWidth / *CDraw::pfScreenAspectRatio, (float)RsGlobal->MaximumHeight, (float)RsGlobal->MaximumWidth, 0.0f), CRGBA(0, 0, 0, 255));
+            CSprite2dDrawRect(CRect(fDefaultCoords + (float)RsGlobalFix->maximumWidth * fDefaultWidth / CDrawFix::GetAspectRatio(), (float)RsGlobalFix->maximumHeight, (float)RsGlobalFix->maximumWidth, 0.0f), CRGBA(0, 0, 0, 255));
         }
     }
     else
@@ -641,32 +521,32 @@ void __fastcall DrawSpriteHook(CSprite2d const& sprite, int, CRect const& rect, 
 injector::hook_back<void(__fastcall*)(CSprite2d const&, int, float, float, float, float, float, float, float, float, CRGBA const&)> hbDraw2;
 void __fastcall DrawSpriteHook2(CSprite2d const& sprite, int, float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4, CRGBA const& color)
 {
-    hbDraw2.fun(sprite, 0, fDefaultCoords + x1 * fDefaultWidth / *CDraw::pfScreenAspectRatio, y1, fDefaultCoords + x2 * fDefaultWidth / *CDraw::pfScreenAspectRatio, y2,
-                fDefaultCoords + x3 * fDefaultWidth / *CDraw::pfScreenAspectRatio, y3, fDefaultCoords + x4 * fDefaultWidth / *CDraw::pfScreenAspectRatio, y4, color);
+    hbDraw2.fun(sprite, 0, fDefaultCoords + x1 * fDefaultWidth / CDrawFix::GetAspectRatio(), y1, fDefaultCoords + x2 * fDefaultWidth / CDrawFix::GetAspectRatio(), y2,
+                fDefaultCoords + x3 * fDefaultWidth / CDrawFix::GetAspectRatio(), y3, fDefaultCoords + x4 * fDefaultWidth / CDrawFix::GetAspectRatio(), y4, color);
 }
 
 injector::hook_back<void(__cdecl*)(float, float, const char*)> hbPrintString;
 void __cdecl PrintStringHook(float x, float y, char* str)
 {
-    hbPrintString.fun(fDefaultCoords + x * fDefaultWidth / *CDraw::pfScreenAspectRatio, y, str);
+    hbPrintString.fun(fDefaultCoords + x * fDefaultWidth / CDrawFix::GetAspectRatio(), y, str);
 }
 
 injector::hook_back<void(__cdecl*)(float, float)> hbSetScale;
 void __cdecl SetScaleHook(float w, float h)
 {
-    hbSetScale.fun(w * fDefaultWidth / *CDraw::pfScreenAspectRatio, h);
+    hbSetScale.fun(w * fDefaultWidth / CDrawFix::GetAspectRatio(), h);
 }
 
 injector::hook_back<void(__cdecl*)(float)> hbSetWrapx;
 void __cdecl SetWrapxHook(float fWrap)
 {
-    hbSetWrapx.fun(fDefaultCoords + fWrap * fDefaultWidth / *CDraw::pfScreenAspectRatio);
+    hbSetWrapx.fun(fDefaultCoords + fWrap * fDefaultWidth / CDrawFix::GetAspectRatio());
 }
 
 injector::hook_back<void(__stdcall*)(const CRect&, const char*, unsigned char, CRGBA, bool, bool)> hbDrawWindow;
 void __stdcall DrawWindowHook(CRect* rect, char* titleKey, char fadeState, CRGBA color, int a5, char bDrawBox)
 {
-    hbDrawWindow.fun(CRect(fDefaultCoords + rect->m_fLeft * fDefaultWidth / *CDraw::pfScreenAspectRatio, rect->m_fBottom, fDefaultCoords + rect->m_fRight * fDefaultWidth / *CDraw::pfScreenAspectRatio, rect->m_fTop), titleKey, fadeState, color, a5, bDrawBox);
+    hbDrawWindow.fun(CRect(fDefaultCoords + rect->left * fDefaultWidth / CDrawFix::GetAspectRatio(), rect->bottom, fDefaultCoords + rect->right * fDefaultWidth / CDrawFix::GetAspectRatio(), rect->top), titleKey, fadeState, color, a5, bDrawBox);
 }
 
 void InstallSCMDrawingFixes()
@@ -693,115 +573,32 @@ void InstallSCMDrawingFixes()
     injector::MakeCALL(0x464A24, DrawWindowHook);
 }
 
-void InstallAspectRatioFixes()
-{
-    // Unlock resolutions
-    // Advanced Display Options
-    injector::MakeNOP(0x745B71, 6); // Skip width check
-    injector::MakeNOP(0x745B81, 6); // Skip height check
-    injector::WriteMemory<BYTE>(0x745B96, 0xEB, true); // Skip AR check
-    injector::MakeNOP(0x745BFC, 2); // Skip VRAM check
-
-    // Resolution selection dialog
-    injector::MakeNOP(0x74596C, 6); // Skip width check
-    injector::MakeNOP(0x74597A, 6); // Skip height check
-    injector::WriteMemory<BYTE>(0x7459D0, 0xEB, true); // Skip AR check
-
-    // Proportional coronas
-    injector::MakeNOP(0x6FB2C9, 4);
-    injector::WriteMemory<BYTE>(0x6FB2BD, 0x6C, true);
-    injector::WriteMemory<BYTE>(0x6FB2DC, 0x78, true);
-    injector::WriteMemory<BYTE>(0x713BE5, 0x20, true);
-    injector::WriteMemory<BYTE>(0x713B6D, 0x38, true);
-    injector::WriteMemory<BYTE>(0x713CFB, 0x38, true);
-    injector::WriteMemory<BYTE>(0x713EFC, 0x30, true);
-    injector::WriteMemory<BYTE>(0x714004, 0x38, true);
-
-    injector::MakeJMP(0x6FF420, CDraw::CalculateAspectRatio, true);
-
-    updateScreenAspectRatioWrapper<(0x0053D695 - 0x1)>();
-    updateScreenAspectRatioWrapper<(0x0053D7B2 - 0x1)>();
-    updateScreenAspectRatioWrapper<(0x0053D967 - 0x1)>();
-    updateScreenAspectRatioWrapper<(0x0053E771 - 0x1)>();
-    updateScreenAspectRatioWrapper<(0x0053EB1A - 0x1)>();
-}
-
-void __declspec(naked) CalculateAimingPoint()
-{
-    _asm
-    {
-        fstp    st
-        mov     edx, [CDraw::pfScreenAspectRatio]
-        fmul[edx]
-        mov     edi, [esp + 1Ch + 14h]
-        mov     edx, edi
-        mov     ebx, 5149A6h
-        jmp     ebx
-    }
-}
-
-void InstallFieldOfViewFixes()
-{
-    injector::MakeJMP(0x6FF410, CDraw::SetFOV, true);
-
-    if (!bDontTouchFOV)
-    {
-        // Fix sky multitude
-        static const float fSkyMultFix = 10.0f;
-        injector::WriteMemory<const void*>(0x714843, &fSkyMultFix, true);
-        injector::WriteMemory<const void*>(0x714860, &fSkyMultFix, true);
-
-        // Set vehicle max FOV.
-        static const float fVehMaxFov = *CDraw::pfScreenFieldOfView + 30.0f;
-        injector::WriteMemory<const void*>(0x524BB4, &fVehMaxFov, true);
-        injector::WriteMemory<float>(0x524BC5, *CDraw::pfScreenFieldOfView + 30.0f, true);
-
-        // Aiming point
-        injector::MakeJMP(0x51499E, CalculateAimingPoint, true);
-        injector::MakeNOP(0x50AD79, 6, true);
-        injector::WriteMemory<const void*>(0x50AD59 + 0x2, &fCameraWidth[0], true);
-        injector::WriteMemory<const void*>(0x51498D + 0x2, &fCameraWidth[0], true);
-
-        // Emergency Vehicles
-        static float f1 = 1.0f;
-        injector::WriteMemory(0x52C9D9 + 0x2, &f1, true);
-        struct EmergencyVehiclesFix
-        {
-            void operator()(injector::reg_pack& regs)
-            {
-                float f = 1.0f / fEmergencyVehiclesFix;
-                _asm {fdiv[f]}
-            }
-        }; injector::MakeInline<EmergencyVehiclesFix>(0x52C9DF, 0x52C9DF + 6);
-    }
-}
-
 float __stdcall StretchXHook(float fValue)
 {
-    if (RsGlobal->MaximumWidth == 640)
+    if (RsGlobalFix->maximumWidth == 640)
         return fValue;
     else
-        return (float)RsGlobal->MaximumWidth * fValue * 0.0015625f;
+        return (float)RsGlobalFix->maximumWidth * fValue * 0.0015625f;
 }
 
 float __stdcall StretchYHook(float fValue)
 {
-    if (RsGlobal->MaximumHeight == 448)
+    if (RsGlobalFix->maximumHeight == 448)
         return fValue;
     else
-        return (float)RsGlobal->MaximumHeight * fValue * 0.002232143f;
+        return (float)RsGlobalFix->maximumHeight * fValue * 0.002232143f;
 }
 
 injector::hook_back<void(__stdcall*)(float, float, float, float, float, float, signed int)> hbDisplaySlider;
 void __stdcall DisplaySliderHook(float x, float y, float unk0, float unk1, float width, float progress, signed int unk)
 {
-    hbDisplaySlider.fun(fWideScreenWidthProperScale * (-100.0f) + (float)RsGlobal->MaximumWidth - (float)RsGlobal->MaximumWidth * 0.0625f, y, unk0, unk1, width, progress, unk);
+    hbDisplaySlider.fun(fWideScreenWidthProperScale * (-100.0f) + (float)RsGlobalFix->maximumWidth - (float)RsGlobalFix->maximumWidth * 0.0625f, y, unk0, unk1, width, progress, unk);
 }
 
 injector::hook_back<void(__cdecl*)(float, float, unsigned short, unsigned int, float, int, bool, bool, CRGBA const& color, CRGBA const&)> hbDrawBarChart;
 void __cdecl DrawBarChartHook(float posX, float posY, unsigned short width, unsigned int height, float progress, int progressAdded, bool drawPercentage, bool drawBlackBorder, CRGBA const& color, CRGBA const& progressAddedColor)
 {
-    hbDrawBarChart.fun(fWideScreenWidthProperScale * (-50.0f) + (float)RsGlobal->MaximumWidth * 0.703125f, posY, width, height, progress, progressAdded, drawPercentage, drawBlackBorder, color, progressAddedColor);
+    hbDrawBarChart.fun(fWideScreenWidthProperScale * (-50.0f) + (float)RsGlobalFix->maximumWidth * 0.703125f, posY, width, height, progress, progressAdded, drawPercentage, drawBlackBorder, color, progressAddedColor);
 }
 
 injector::hook_back<void(__cdecl*)(float)> hbSetCentreSize;
@@ -809,7 +606,7 @@ void __cdecl SetCentreSizeHook(float a1)
 {
     if (*(bool*)0xA92D68) // CTheScripts::IntroRectangles[80]
     {
-        hbSetCentreSize.fun(a1 * fDefaultWidth / *CDraw::pfScreenAspectRatio);
+        hbSetCentreSize.fun(a1 * fDefaultWidth / CDrawFix::GetAspectRatio());
     }
     else
         hbSetCentreSize.fun(a1);
@@ -819,43 +616,33 @@ void VideoPlayerShowHook()
 {
     IVideoWindow*& pvVideoWindow = *(IVideoWindow**)0xC920E0;
 
-    CDraw::CalculateAspectRatio();
+    CDrawFix::CalculateAspectRatio();
 
-    long l, t, r, b;
+    long r, b;
     pvVideoWindow->get_Width(&r);
     pvVideoWindow->get_Height(&b);
 
-    float fMiddleScrCoord = (float)RsGlobal->MaximumWidth / 2.0f;
+    float fMiddleScrCoord = (float)RsGlobalFix->maximumWidth / 2.0f;
 
-    float w = r;
-    float h = b;
+    float w = static_cast<float>(r);
+    float h = static_cast<float>(b);
 
-    if (FrontendAspectRatioWidth && FrontendAspectRatioHeight)
+    if (w == h && w > 0 && h > 0)
     {
-        w = (float)FrontendAspectRatioWidth;
-        h = (float)FrontendAspectRatioHeight;
-    }
-    else
-    {
-        if (w == h && w > 0 && h > 0)
-        {
-            w = 4.0f;
-            h = 3.0f;
-        }
+        w = 4.0f;
+        h = 3.0f;
     }
 
-    fFrontendDefaultWidth = ((((float)RsGlobal->MaximumHeight * (w / h))));
-
-    long Top = 0.0f;
-    long Left = fMiddleScrCoord - ((((float)RsGlobal->MaximumHeight * (w / h))) / 2.0f);
-    long Bottom = (float)RsGlobal->MaximumHeight;
-    long Right = fMiddleScrCoord + ((((float)RsGlobal->MaximumHeight * (w / h))) / 2.0f);
+    long Top = static_cast<long>(0.0f);
+    long Left = static_cast<long>(fMiddleScrCoord - ((((float)RsGlobalFix->maximumHeight * (w / h))) / 2.0f));
+    long Bottom = static_cast<long>((float)RsGlobalFix->maximumHeight);
+    long Right = static_cast<long>(fMiddleScrCoord + ((((float)RsGlobalFix->maximumHeight * (w / h))) / 2.0f));
 
     HRESULT wPos = pvVideoWindow->SetWindowPosition(Left, Top, Right - Left, Bottom);
     if (wPos >= 0)
     {
-        pvVideoWindow->put_MessageDrain((OAHWND)RsGlobal->ps);
-        SetFocus((HWND)RsGlobal->ps);
+        pvVideoWindow->put_MessageDrain((OAHWND)RsGlobalFix->ps);
+        SetFocus((HWND)RsGlobalFix->ps);
     }
 }
 
@@ -1195,152 +982,154 @@ void InstallHUDFixes()
             injector::WriteMemory<const void*>(m_dwRadarHeight[i] + 0x2, &fRadarHeight[i], true);
     }
 
-    int m_dwHUDWidth[] = { 0x58EB3F, // 0 Clock
-                           0x58EC0C, // 1 Clock
-                           0x58F55C, // 2 Money
-                           0x58F5F4, // 3 Money
-                           0x5892CA, // 4 Info bars
-                           0x58937E, // 5 Info bars
-                           0x58EE7E, // 6 Info bars
-                           0x58EEF4, // 7 Info bars
-                           0x589155, // 8 Info bars
-                           0x58EF50, // 9 Info bars
-                           0x58EFC5, // 10 Info bars
-                           0x58922D, // 11 Info bars
-                           0x58F116, // 12 Info bars
-                           0x58F194, // 13 Info bars
-                           0x58D92D, // 14 Weapon icons
-                           0x58D8C3, // 15 Weapon icons
-                           0x58F91C, // 16 Weapon icons
-                           0x58F92D, // 17 Weapon icons
-                           0x5894C5, // 18 Ammo
-                           0x5894E9, // 19 Ammo
-                           0x58F9D0, // 20 Ammo
-                           0x58FA5D, // 21 Ammo
-                           0x58F9F5, // 22 Ammo
-                           0x58FA8E, // 23 Ammo
-                           0x58DCB8, // 24 Wanted
-                           0x58DD00, // 25 Wanted
-                           0x58DD7E, // 26 Wanted
-                           0x58DF71, // 27 Wanted
-                           0x58DFE5, // 28 Wanted
-                           NULL,     // 29
-                           0x58B09F, // 30 Vehicle names
-                           0x58B13F, // 31 Vehicle names
-                           0x58AD3A, // 32 Area names
-                           0x58AD65, // 33 Area names
-                           0x58AE4A, // 34 Area names
-                           0x58C395, // 35 Subs
-                           0x58C41D, // 36 Subs
-                           0x58C4DC, // 37 Subs
-                           0x5896D8, // 38 Stats box
-                           0x589703, // 39 Stats box
-                           0x58990C, // 40 Stats box
-                           0x58986D, // 41 Stats box
-                           0x5897C3, // 42 Stats box
-                           0x589A16, // 43 Stats box
-                           0x589B2D, // 44 Stats box
-                           0x589C73, // 45 Stats box
-                           0x589D61, // 46 Stats box
-                           0x589E49, // 47 Stats box
-                           0x589F31, // 48 Stats box
-                           0x58A013, // 49 Stats box
-                           0x58A090, // 50 Stats box
-                           0x58A134, // 51 Stats box
-                           NULL,     // 52
-                           NULL,     // 53
-                           NULL,     // 54
-                           NULL,     // 55
-                           NULL,     // 56
-                           NULL,     // 57
-                           NULL,     // 58
-                           NULL,     // 59
-                           NULL,     // 60
-                           NULL,     // 61
-                           0x58C863, // 62 SuccessFailed text
-                           0x58D2DB, // 63 MissionTitle text
-                           0x58D459, // 64 MissionTitle text
-                           0x58CBC1, // 65 WastedBusted text
-                           0x58B273, // 66 Timers
-                           0x58B2A4, // 67 Timers
-                           0x58B3AF, // 68 Timers
-                           0x58B3FC, // 69 Timers
-                           0x58B56A, // 70 Timers
-                           0x58B5EE, // 71 Timers
-                           0x58B67E, // 72 Timers
-                           0x58B76F, // 73 Helptext
-                           0x58B7D6, // 74 Helptext
-                           0x58BA62, // 75 Helptext
-                           0x58BAC6, // 76 Helptext
-                           0x58BBDB, // 77 Helptext
-                           0x58BCB0, // 78 Helptext
-                           0x58BD58, // 79 Helptext
-                           0x58BE8D, // 80 Helptext
-                           0x58BF7E, // 81 Helptext
-                           0x58BFFC, // 82 Helptext
-                           0x580F16, // 83 Menu system
-                           0x580F95, // 84
-                           0x5810EF, // 85
-                           0x581158, // 86
-                           0x5811CD, // 87
-                           0x58148A, // 88
-                           0x5814F7, // 89
-                           0x5815B1, // 90
-                           0x5815EB, // 91
-                           0x581633, // 92
-                           0x47AD2A, // 93
-                           0x5818CF, // 94
-                           0x58CCDB, // 95 OddJob
-                           0x58CDE6, // 96 OddJob
-                           0x58CEE2, // 97 OddJob
-                           0x58D15C, // 98 OddJob
-                           0x58A178, // 99 TripSkip
-                           0x58A21D, // 100 TripSkip
-                           0x58A2C0, // 101 TripSkip
-                           0x4E9F30, // 102 RadioStation
-                           0x43CF57, // 103 CDarkel
-                           0x4477CD, // 104 CGarages
-                           0x4477F7, // 105 CGarages
+    int m_dwHUDWidth[] = {
+        0x58EB3F, // 0 Clock
+        0x58EC0C, // 1 Clock
+        0x58F55C, // 2 Money
+        0x58F5F4, // 3 Money
+        0x5892CA, // 4 Info bars
+        0x58937E, // 5 Info bars
+        0x58EE7E, // 6 Info bars
+        0x58EEF4, // 7 Info bars
+        0x589155, // 8 Info bars
+        0x58EF50, // 9 Info bars
+        0x58EFC5, // 10 Info bars
+        0x58922D, // 11 Info bars
+        0x58F116, // 12 Info bars
+        0x58F194, // 13 Info bars
+        0x58D92D, // 14 Weapon icons
+        0x58D8C3, // 15 Weapon icons
+        0x58F91C, // 16 Weapon icons
+        0x58F92D, // 17 Weapon icons
+        0x5894C5, // 18 Ammo
+        0x5894E9, // 19 Ammo
+        0x58F9D0, // 20 Ammo
+        0x58FA5D, // 21 Ammo
+        0x58F9F5, // 22 Ammo
+        0x58FA8E, // 23 Ammo
+        0x58DCB8, // 24 Wanted
+        0x58DD00, // 25 Wanted
+        0x58DD7E, // 26 Wanted
+        0x58DF71, // 27 Wanted
+        0x58DFE5, // 28 Wanted
+        NULL,     // 29
+        0x58B09F, // 30 Vehicle names
+        0x58B13F, // 31 Vehicle names
+        0x58AD3A, // 32 Area names
+        0x58AD65, // 33 Area names
+        0x58AE4A, // 34 Area names
+        0x58C395, // 35 Subs
+        0x58C41D, // 36 Subs
+        0x58C4DC, // 37 Subs
+        0x5896D8, // 38 Stats box
+        0x589703, // 39 Stats box
+        0x58990C, // 40 Stats box
+        0x58986D, // 41 Stats box
+        0x5897C3, // 42 Stats box
+        0x589A16, // 43 Stats box
+        0x589B2D, // 44 Stats box
+        0x589C73, // 45 Stats box
+        0x589D61, // 46 Stats box
+        0x589E49, // 47 Stats box
+        0x589F31, // 48 Stats box
+        0x58A013, // 49 Stats box
+        0x58A090, // 50 Stats box
+        0x58A134, // 51 Stats box
+        NULL,     // 52
+        NULL,     // 53
+        NULL,     // 54
+        NULL,     // 55
+        NULL,     // 56
+        NULL,     // 57
+        NULL,     // 58
+        NULL,     // 59
+        NULL,     // 60
+        NULL,     // 61
+        0x58C863, // 62 SuccessFailed text
+        0x58D2DB, // 63 MissionTitle text
+        0x58D459, // 64 MissionTitle text
+        0x58CBC1, // 65 WastedBusted text
+        0x58B273, // 66 Timers
+        0x58B2A4, // 67 Timers
+        0x58B3AF, // 68 Timers
+        0x58B3FC, // 69 Timers
+        0x58B56A, // 70 Timers
+        0x58B5EE, // 71 Timers
+        0x58B67E, // 72 Timers
+        0x58B76F, // 73 Helptext
+        0x58B7D6, // 74 Helptext
+        0x58BA62, // 75 Helptext
+        0x58BAC6, // 76 Helptext
+        0x58BBDB, // 77 Helptext
+        0x58BCB0, // 78 Helptext
+        0x58BD58, // 79 Helptext
+        0x58BE8D, // 80 Helptext
+        0x58BF7E, // 81 Helptext
+        0x58BFFC, // 82 Helptext
+        0x580F16, // 83 Menu system
+        0x580F95, // 84
+        0x5810EF, // 85
+        0x581158, // 86
+        0x5811CD, // 87
+        0x58148A, // 88
+        0x5814F7, // 89
+        0x5815B1, // 90
+        0x5815EB, // 91
+        0x581633, // 92
+        0x47AD2A, // 93
+        0x5818CF, // 94
+        0x58CCDB, // 95 OddJob
+        0x58CDE6, // 96 OddJob
+        0x58CEE2, // 97 OddJob
+        0x58D15C, // 98 OddJob
+        0x58A178, // 99 TripSkip
+        0x58A21D, // 100 TripSkip
+        0x58A2C0, // 101 TripSkip
+        0x4E9F30, // 102 RadioStation
+        0x43CF57, // 103 CDarkel
+        0x4477CD, // 104 CGarages
+        0x4477F7, // 105 CGarages
     };
 
-    int m_dwHUDHeight[] = { 0x58EB29, // 0 Clock
-                            0x58EBF9, // 1 Clock
-                            0x58F546, // 2 Money
-                            0x58F5CE, // 3 Money
-                            0x589346, // 4 Info bars
-                            0x58EE60, // 5 Info bars
-                            0x588B9C, // 6 Info bars
-                            0x58EEC8, // 7 Info bars
-                            0x58913E, // 8 Info bars
-                            0x58EF32, // 9 Info bars
-                            0x58EF99, // 10 Info bars
-                            0x589216, // 11 Info bars
-                            0x58F0F8, // 12 Info bars
-                            0x58F168, // 13 Info bars
-                            0x58D945, // 14 Weapon icons
-                            0x58D882, // 15 Weapon icons
-                            0x58F90B, // 16 Weapon icons
-                            NULL,     // 17
-                            0x5894AF, // 18 Ammo
-                            NULL,     // 19
-                            0x58F9C0, // 20 Ammo
-                            0x58FA4A, // 21 Ammo
-                            NULL,     // 22
-                            NULL,     // 23
-                            0x58DCA2, // 24 Wanted
-                            0x58DD68, // 25 Wanted
-                            0x58DDF4, // 26 Wanted
-                            0x58DF55, // 27 Wanted
-                            0x58DF9B, // 28 Wanted
-                            0x58DEE4, // 29 Wanted
-                            0x58B089, // 30 Vehicle names
-                            0x58B12D, // 31 Vehicle names
-                            0x58AD24, // 32 Area names
-                            0x58AE0D, // 33 Area names
-                            NULL,     // 34
-                            0x58C37F, // 35 Subs
-                            0x58C407, // 36 Subs
-                            0x58C4C6, // 37 Subs
+    int m_dwHUDHeight[] = {
+        0x58EB29, // 0 Clock
+        0x58EBF9, // 1 Clock
+        0x58F546, // 2 Money
+        0x58F5CE, // 3 Money
+        0x589346, // 4 Info bars
+        0x58EE60, // 5 Info bars
+        0x588B9C, // 6 Info bars
+        0x58EEC8, // 7 Info bars
+        0x58913E, // 8 Info bars
+        0x58EF32, // 9 Info bars
+        0x58EF99, // 10 Info bars
+        0x589216, // 11 Info bars
+        0x58F0F8, // 12 Info bars
+        0x58F168, // 13 Info bars
+        0x58D945, // 14 Weapon icons
+        0x58D882, // 15 Weapon icons
+        0x58F90B, // 16 Weapon icons
+        NULL,     // 17
+        0x5894AF, // 18 Ammo
+        NULL,     // 19
+        0x58F9C0, // 20 Ammo
+        0x58FA4A, // 21 Ammo
+        NULL,     // 22
+        NULL,     // 23
+        0x58DCA2, // 24 Wanted
+        0x58DD68, // 25 Wanted
+        0x58DDF4, // 26 Wanted
+        0x58DF55, // 27 Wanted
+        0x58DF9B, // 28 Wanted
+        0x58DEE4, // 29 Wanted
+        0x58B089, // 30 Vehicle names
+        0x58B12D, // 31 Vehicle names
+        0x58AD24, // 32 Area names
+        0x58AE0D, // 33 Area names
+        NULL,     // 34
+        0x58C37F, // 35 Subs
+        0x58C407, // 36 Subs
+        0x58C4C6, // 37 Subs
         //0x58C53B, // 38 Subs
         //0x58C611, // 39 Subs
         0x5898F6, // 40 Stats box text
@@ -1445,250 +1234,112 @@ void InstallHUDFixes()
     injector::WriteMemory<const void*>(0x58FA8E + 0x2, &fHUDWidth[17], true); // Ammo x
 }
 
-injector::hook_back<void(__cdecl*)(CRect&, CRGBA const&, CRGBA const&, CRGBA const&, CRGBA const&)> hbSetVertices;
-void __cdecl SetVerticesHook(CRect& a1, CRGBA const& a2, CRGBA const& a3, CRGBA const& a4, CRGBA const& a5)
-{
-    uint32_t pTexture = 0;
-    _asm mov pTexture, esi
-
-    if (static_cast<int>(a1.m_fLeft) <= 0 && static_cast<int>(a1.m_fTop) <= 0 && static_cast<int>(a1.m_fRight) >= RsGlobal->MaximumWidth && static_cast<int>(a1.m_fBottom) >= RsGlobal->MaximumHeight)
-    {
-        if (pTexture)
-        {
-            const uintptr_t pRwTexture = *(uintptr_t*)pTexture;
-            if (pRwTexture && std::find(std::begin(main_scm_tex), std::end(main_scm_tex), std::string_view((const char*)(pRwTexture + 0x10))) != std::end(main_scm_tex))
-            {
-                float fMiddleScrCoord = (float)RsGlobal->MaximumWidth / 2.0f;
-
-                float w = 16.0f;
-                float h = 9.0f;
-
-                if (FrontendAspectRatioWidth && FrontendAspectRatioHeight)
-                {
-                    w = (float)FrontendAspectRatioWidth;
-                    h = (float)FrontendAspectRatioHeight;
-                }
-                else
-                {
-                    if (pTexture)
-                    {
-                        if (*(uint32_t*)pTexture)
-                        {
-                            pTexture = **(uint32_t**)pTexture;
-                            w = (float)(*(uint32_t*)(pTexture + 0x28));
-                            h = (float)(*(uint32_t*)(pTexture + 0x2C));
-                            if (w == h && w > 0 && h > 0)
-                            {
-                                w = 4.0f;
-                                h = 3.0f;
-                            }
-                        }
-                    }
-                }
-
-                fFrontendDefaultWidth = ((((float)RsGlobal->MaximumHeight * (w / h))));
-
-                a1.m_fTop = 0.0f;
-                a1.m_fLeft = fMiddleScrCoord - ((((float)RsGlobal->MaximumHeight * (w / h))) / 2.0f);
-                a1.m_fBottom = (float)RsGlobal->MaximumHeight;
-                a1.m_fRight = fMiddleScrCoord + ((((float)RsGlobal->MaximumHeight * (w / h))) / 2.0f);
-
-                CRGBA RectColor = { 0, 0, 0, a2.alpha };
-                CSprite2dDrawRect2(CRect(-5.0f, a1.m_fBottom, a1.m_fLeft, -5.0f), RectColor, RectColor, RectColor, RectColor);
-                CSprite2dDrawRect2(CRect((float)RsGlobal->MaximumWidth, a1.m_fBottom, a1.m_fRight, -5.0f), RectColor, RectColor, RectColor, RectColor);
-                CSprite2dDrawRect2(CRect(-5.0f, (float)RsGlobal->MaximumHeight + 5.0f, (float)RsGlobal->MaximumWidth + 5.0f, -5.0f), RectColor, RectColor, RectColor, RectColor);
-            }
-        }
-    }
-    return hbSetVertices.fun(a1, a2, a3, a4, a5);
-}
-
 injector::hook_back<void(__cdecl*)(float, float, unsigned short, unsigned int, float, int, bool, bool, CRGBA const&, CRGBA const&)> hbDrawLoadingBar;
 void __cdecl DrawLoadingBarHook(float x, float y, unsigned int w, unsigned int h, float progress, int progressAdded, bool drawPercentage, bool drawBlackBorder, CRGBA const& color, CRGBA const& progressAddedColor)
 {
-    if (FrontendAspectRatioWidth && FrontendAspectRatioHeight)
+    if (w == h && w > 0 && h > 0)
     {
-        x = ((float)RsGlobal->MaximumWidth * 0.5f - fFrontendDefaultWidth * 0.5f + fFrontendDefaultWidth * 0.079f);
-        w = static_cast<unsigned int>(fFrontendDefaultWidth * 0.279f);
+        w = 4;
+        h = 3;
     }
-    else
-    {
-        x = ((float)RsGlobal->MaximumWidth * 0.5f - fFrontendDefaultWidth * 0.5f + x * (4.0f / 3.0f) / *CDraw::pfScreenAspectRatio);
-        w = static_cast<unsigned int>((float)w * (4.0f / 3.0f) / *CDraw::pfScreenAspectRatio);
-    }
+
+    float fFrontendDefaultWidth = ((((float)RsGlobalFix->maximumHeight * (static_cast<float>(w) / static_cast<float>(h)))));
+
+    x = ((float)RsGlobalFix->maximumWidth * 0.5f - fFrontendDefaultWidth * 0.5f + x * (4.0f / 3.0f) / CDrawFix::GetAspectRatio());
+    w = static_cast<unsigned int>((float)w * (4.0f / 3.0f) / CDrawFix::GetAspectRatio());
 
     hbDrawLoadingBar.fun(x, y, w, h, progress, progressAdded, drawPercentage, drawBlackBorder, color, progressAddedColor);
 }
 
-void Install2dSpriteFixes()
+class Frontend2
 {
-    if (strncmp(szFrontendAspectRatio.c_str(), "auto", 4) != 0)
+public:
+    Frontend2()
     {
-        FrontendAspectRatioWidth = std::stoi(szFrontendAspectRatio.c_str());
-        FrontendAspectRatioHeight = std::stoi(strchr(szFrontendAspectRatio.c_str(), ':') + 1);
-    }
-    else
-    {
-        FrontendAspectRatioWidth = 0;
-        FrontendAspectRatioHeight = 0;
-    }
-
-    hbSetVertices.fun = injector::MakeCALL(0x728360, SetVerticesHook).get();
-    injector::MakeCALL(0x728360, SetVerticesHook);
-
-    // Loading bar fix
-    hbDrawLoadingBar.fun = injector::MakeCALL(0x590480, DrawLoadingBarHook).get();
-    injector::MakeCALL(0x590480, DrawLoadingBarHook);
-
-    // Make rocket launcher and hydra lockons circular rather than an ellipse (clippy95)
-    uintptr_t m_dwLockOnWidth[] = { 0x742E50,
-                         0x742E61,
-                         0x742EDE,
-                         0x742EEF,
-                         0x742FFD,
-                         0x74300E,
-                         0x7430A2,
-                         0x7430B3,
-    };
-
-    for (int i = 0; i < sizeof(m_dwLockOnWidth) / sizeof(const void*); i++)
-    {
-        if (m_dwLockOnWidth[i] != NULL)
-            // 0x858BA4 points to 20.f
-            injector::WriteMemory<uintptr_t>(m_dwLockOnWidth[i] + 2, 0x858BA4, true);
-    }
-
-    // Make co-op in-car crosshair circular rather than an ellipse (clippy95)
-    injector::WriteMemory<uint8_t>(0x00743BCD, 0x34, true); // multiply by a4 rather than a3
-
-}
-
-void ApplyIniOptions()
-{
-    if (bAllowAltTabbingWithoutPausing)
-    {
-        //Windowed mode fix (from MTA sources)
-        if ((GetWindowLong((HWND)RsGlobal->ps, GWL_STYLE) & WS_POPUP) == 0)
+        WFP::onGameInitEvent() += []()
         {
-            // Disable MENU AFTER alt + tab
-            //0053BC72   C605 7B67BA00 01 MOV BYTE PTR DS:[BA677B],1
-            injector::WriteMemory<uint8_t>(0x53BC78, 0x00, true);
+            CIniReader iniReader("");
 
-            // ALLOW ALT+TABBING WITHOUT PAUSING
-            injector::MakeNOP(0x748A8D, 6, true);
-            injector::MakeJMP(0x6194A0, AllowMouseMovement, true);
-        }
+            auto bScalingMode = iniReader.ReadInteger("MAIN", "ScalingMode", 1) != 0;
+            if (bScalingMode)
+                return;
+
+            fHudWidthScale = iniReader.ReadFloat("MAIN", "HudWidthScale", 0.0f); fHudWidthScale == 0.0f ? fHudWidthScale = 1.0f : fHudWidthScale;
+            fHudHeightScale = iniReader.ReadFloat("MAIN", "HudHeightScale", 0.0f); fHudHeightScale == 0.0f ? fHudHeightScale = 1.0f : fHudHeightScale;
+            fRadarWidthScale = iniReader.ReadFloat("MAIN", "RadarWidthScale", 0.0f); fRadarWidthScale == 0.0f ? fRadarWidthScale = 1.0f : fRadarWidthScale;
+            fRadarHeightScale = iniReader.ReadFloat("MAIN", "RadarHeightScale", 0.0f); fRadarHeightScale == 0.0f ? fRadarHeightScale = 1.0f : fRadarHeightScale;
+            fSubtitlesScale = iniReader.ReadFloat("MAIN", "SubtitlesScale", 0.0f); fSubtitlesScale == 0.0f ? fSubtitlesScale = 1.0f : fSubtitlesScale;
+            bProportionalWeaponIcon = iniReader.ReadInteger("MAIN", "ProportionalWeaponIcon", 0) != 0;
+            g_noBorderAnim = iniReader.ReadInteger("MAIN", "NoCutsceneBorderAnimation", 0) != 0;
+
+            static float fRadarWidth = iniReader.ReadFloat("MAIN", "RadarWidth", 94.0f);
+            static float fRadarHeight = iniReader.ReadFloat("MAIN", "RadarHeight", 76.0f);
+
+            if (!fHudWidthScale || !fHudHeightScale) { fHudWidthScale = 1.0f; fHudHeightScale = 1.0f; }
+            if (!fRadarWidthScale) { fRadarWidthScale = 1.0f; }
+            if (!fRadarHeightScale) { fRadarHeightScale = 1.0f; }
+            if (!fSubtitlesScale) { fSubtitlesScale = 1.0f; }
+
+            CSprite2dDrawRect = (int(__cdecl*)(CRect const&, CRGBA const&)) 0x727B60;
+            CSprite2dDrawRect2 = (int(__cdecl*)(CRect const&, CRGBA const&, CRGBA const&, CRGBA const&, CRGBA const&)) 0x727C10;
+
+            InstallFrontendFixes();
+            InstallMiscFixes();
+            InstallHUDFixes();
+            InstallSCMDrawingFixes();
+
+            // Loading bar fix
+            hbDrawLoadingBar.fun = injector::MakeCALL(0x590480, DrawLoadingBarHook).get();
+            injector::MakeCALL(0x590480, DrawLoadingBarHook);
+
+            // Make rocket launcher and hydra lockons circular rather than an ellipse (clippy95)
+            uintptr_t m_dwLockOnWidth[] = { 0x742E50,
+                                 0x742E61,
+                                 0x742EDE,
+                                 0x742EEF,
+                                 0x742FFD,
+                                 0x74300E,
+                                 0x7430A2,
+                                 0x7430B3,
+            };
+
+            for (int i = 0; i < sizeof(m_dwLockOnWidth) / sizeof(const void*); i++)
+            {
+                if (m_dwLockOnWidth[i] != NULL) // 0x858BA4 points to 20.f
+                    injector::WriteMemory<uintptr_t>(m_dwLockOnWidth[i] + 2, 0x858BA4, true);
+            }
+
+            // Make co-op in-car crosshair circular rather than an ellipse (clippy95)
+            injector::WriteMemory<uint8_t>(0x00743BCD, 0x34, true); // multiply by a4 rather than a3
+
+            // Radar
+            static ProtectedGameRef<float> radarWidthRef;
+            static ProtectedGameRef<float> radarHeightRef;
+
+            auto pattern = hook::pattern("D9 05 ? ? ? ? D8 C9 D9 C1 D8 0D ? ? ? ? D8 E9");
+            radarWidthRef.SetAddress(*pattern.get_first<float*>(2));
+
+            pattern = hook::pattern("D9 05 ? ? ? ? D8 C9 D9 5C 24 ? D9 05 ? ? ? ? D8 C9 D8 6C 24");
+            radarHeightRef.SetAddress(*pattern.get_first<float*>(2));
+
+            radarWidthRef = fRadarWidth * (((float)DEFAULT_SCREEN_WIDTH / (float)DEFAULT_SCREEN_HEIGHT) / (640.0f / 448.0f));
+            radarHeightRef = fRadarHeight;
+
+            onResChange() += [](int Width, int Height)
+            {
+                fWideScreenWidthScale = 640.0f / (CDrawFix::GetAspectRatio() * 448.0f);
+                fWideScreenHeightScale = 448.0 / 448.0f;
+                fWideScreenWidthProperScale = static_cast<float>(RsGlobalFix->maximumWidth) / (CDrawFix::GetAspectRatio() * 448.0f);
+                fWideScreenHeightProperScale = static_cast<float>(RsGlobalFix->maximumHeight) / 448.0f;
+                fDefaultWidth = (4.0f / 3.0f);
+
+                UpdateFrontendFixes();
+                UpdateMiscFixes();
+                UpdateHUDFixes();
+                UpdateScriptFixes();
+            };
+        };
     }
+} Frontend2;
 
-    if (strncmp(szForceAspectRatio.c_str(), "auto", 4) != 0)
-    {
-        AspectRatioWidth = std::stoi(szForceAspectRatio.c_str());
-        AspectRatioHeight = std::stoi(strchr(szForceAspectRatio.c_str(), ':') + 1);
-        fCustomAspectRatioHor = static_cast<float>(AspectRatioWidth);
-        fCustomAspectRatioVer = static_cast<float>(AspectRatioHeight);
-    }
-
-    if (!fHudWidthScale || !fHudHeightScale) { fHudWidthScale = 1.0f; fHudHeightScale = 1.0f; }
-    if (!fRadarWidthScale) { fRadarWidthScale = 1.0f; }
-    if (!fRadarHeightScale) { fRadarHeightScale = 1.0f; }
-    if (!fSubtitlesScale) { fSubtitlesScale = 1.0f; }
-
-    if (DisableWhiteCrosshairDot)
-    {
-        injector::MakeNOP(0x58E2DD, 5, true);
-    }
-
-    if (ReplaceTextShadowWithOutline)
-    {
-        //CFont::SetDropShadowPosition -> CFont::SetEdge
-        injector::MakeJMP(0x719570, SetDropShadowPosition, true);
-    }
-
-    if (nHideAABug)
-    {
-        injector::MakeJMP(0x53E90E, Hide1pxAABug, true);
-    }
-
-    injector::WriteMemory<uint8_t>(0x53E2AD, 0x74, true); // Reverse g_MenuManager.widescreenOn to make widescreen off equal to borders off
-    injector::WriteMemory<uint8_t>(0x58BB90, 0x74, true); // for borders and text boxes.
-
-    if (bSmartCutsceneBorders)
-    {
-        injector::MakeCALL(0x53E2B4, CCamera::DrawBordersForWideScreen, true);
-        injector::MakeCALL(0x5AF8C0, CCamera::DrawBordersForWideScreen, true);
-        injector::WriteMemory<uint8_t>(0x58BB93, 0x00, true); // Text box offset in cutscenes
-    }
-}
-
-void CompatWarning()
-{
-    wchar_t buffer[MAX_PATH];
-    GetModuleFileName(GetModuleHandle(L"wshps.asi"), buffer, sizeof(buffer));
-    auto s = std::wstring(buffer);
-
-    auto result = MessageBox(NULL, L"wshps.asi is no longer required for the widescreen fix to work.\n\
-     Click Yes to remove it, restart the game after.\n\
-     Click No to continue, but issues may occur (not recommended).\n\
-     You can remove wshps.asi manually later.", L"GTASA.WidescreenFix.asi", MB_YESNO);
-
-    switch (result)
-    {
-        case IDYES:
-            MoveFileW(s.c_str(), std::wstring(s + L".deleteonnextlaunch").c_str());
-            ExitProcess(0);
-            break;
-        default:
-            break;
-    }
-}
-
-DWORD WINAPI CompatHandler(LPVOID)
-{
-    HANDLE hTimer = NULL;
-    LARGE_INTEGER liDueTime;
-    liDueTime.QuadPart = -30 * 10000000LL;
-    hTimer = CreateWaitableTimer(NULL, TRUE, NULL);
-    SetWaitableTimer(hTimer, &liDueTime, 0, NULL, NULL, 0);
-    bool bSP = false, bWSHPS = false;
-
-    while (true)
-    {
-        if (!bSP && GetModuleHandle(L"SilentPatchSA.asi") != NULL)
-        {
-            OverwriteResolution();
-            bSP = true;
-        }
-
-        if (!bWSHPS && GetModuleHandle(L"wshps.asi") != NULL)
-        {
-            CompatWarning();
-            bWSHPS = true;
-        }
-
-        if ((WaitForSingleObject(hTimer, 0) == WAIT_OBJECT_0) || (bSP && bWSHPS))
-        {
-            CloseHandle(hTimer);
-            return 0;
-        }
-
-        Sleep(0);
-    };
-
-    return 0;
-}
-
-export void InitLegacy()
-{
-    CreateThreadAutoClose(0, 0, (LPTHREAD_START_ROUTINE)&CompatHandler, NULL, 0, NULL);
-    ReadSettings();
-    GetMemoryAddresses();
-    OverwriteResolution();
-    ApplyIniOptions();
-    InstallAspectRatioFixes();
-    InstallFieldOfViewFixes();
-    InstallFrontendFixes();
-    InstallMiscFixes();
-    InstallHUDFixes();
-    InstallSCMDrawingFixes();
-    Install2dSpriteFixes();
 }

@@ -350,6 +350,9 @@ project "GTASA.WidescreenFix"
    }]]--
    files { "source/%{prj.name}/*.fx", "source/%{prj.name}/*.rc" }
    defines { "IDR_POSTFX=201" }
+   filter "action:gmake2"
+      links { "gdi32", "winmm" }
+   filter {}
    files { "includes/GTA/*.h", "includes/GTA/*.cpp" }
    setpaths("Z:/WFP/Games/Grand Theft Auto/GTA San Andreas/", "gta_sa.exe")
 group ""

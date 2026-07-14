@@ -1,12 +1,10 @@
-module;
+#pragma once
 
 #include <stdafx.h>
 
-export module Timer;
-
-export namespace CTimer
+namespace CTimer
 {
-    GameRef<unsigned int> m_snTimeInMilliseconds([]() -> unsigned int*
+    inline GameRef<unsigned int> m_snTimeInMilliseconds([]() -> unsigned int*
     {
         auto pattern = hook::pattern("A1 ? ? ? ? 2B 46 ? 85 C0 89 44 24 ? DB 44 24 ? 7D ? D8 05 ? ? ? ? DA 76");
         if (!pattern.empty())
@@ -14,7 +12,7 @@ export namespace CTimer
         return nullptr;
     });
 
-    GameRef<unsigned int> m_snTimeInMillisecondsPauseMode([]() -> unsigned int*
+    inline GameRef<unsigned int> m_snTimeInMillisecondsPauseMode([]() -> unsigned int*
     {
         auto pattern = hook::pattern("A1 ? ? ? ? 2B C2 01 44 8E");
         if (!pattern.empty())
@@ -22,7 +20,7 @@ export namespace CTimer
         return nullptr;
     });
 
-    GameRef<float> ms_fTimeStep([]() -> float*
+    inline GameRef<float> ms_fTimeStep([]() -> float*
     {
         auto pattern = hook::pattern("C7 05 ? ? ? ? ? ? ? ? C7 05 ? ? ? ? ? ? ? ? C7 05 ? ? ? ? ? ? ? ? FF 15");
         if (!pattern.empty())

@@ -1,17 +1,16 @@
-module;
-
 #include <stdafx.h>
 #include "common.h"
 #include "callargs.h"
 
-export module Sprite2d;
+#include "Skeleton.h"
+#include "Camera.h"
+#include "Draw.h"
+#include "Timer.h"
+#include "Menu.h"
+#include "Sprite2d.h"
 
-import Skeleton;
-import Camera;
-import Draw;
-import Timer;
-import Menu;
-//import TransparentMenu;
+namespace
+{
 
 using RwIm2DVertex = void;
 
@@ -21,7 +20,6 @@ public:
     RwTexture* m_pTexture;
 };
 
-export bool g_noBorderAnim = false;
 float s_bordersMult = 0.0f;
 float s_barHeight = 0.0f;
 float s_pillarWidth = 0.0f;
@@ -32,7 +30,6 @@ uint32_t s_lastTickMs = 0;
 uint32_t s_lastExitDrawMs = 0;
 constexpr float BORDER_ANIM_SECS = 0.35f;
 
-export bool g_isMouseCursor = false;
 bool g_skipXCorrection = false;
 bool g_isFullscreen = false;
 bool g_hasTexture = false;
@@ -40,7 +37,7 @@ uint8_t g_alpha = 255;
 CRect g_contentRect = {};
 bool g_drawingBars = false;
 
-static inline float CorrectX(float x)
+inline float CorrectX(float x)
 {
     #if 0
     float arScale = DEFAULT_ASPECT_RATIO / SCREEN_ASPECT_RATIO;
@@ -51,7 +48,7 @@ static inline float CorrectX(float x)
     return x;
 }
 
-static inline bool IsFullscreen(const CRect* r)
+inline bool IsFullscreen(const CRect* r)
 {
     return r->left <= 0.5f
         && r->top <= 0.5f
@@ -59,12 +56,7 @@ static inline bool IsFullscreen(const CRect* r)
         && r->bottom >= SCREEN_HEIGHT - 0.5f;
 }
 
-export bool g_wantsToMoveHudLeft = false;
-export bool g_wantsToMoveHudRight = false;
-export bool g_needsToMoveHudLeft = false;
-export bool g_needsToMoveHudRight = false;
-
-static inline float GetHudOffset()
+inline float GetHudOffset()
 {
     if (g_wantsToMoveHudLeft)  return -fWidescreenHudOffset;
     if (g_wantsToMoveHudRight) return  fWidescreenHudOffset;
@@ -73,7 +65,7 @@ static inline float GetHudOffset()
     return 0.0f;
 }
 
-static inline CRect* ScaleRect(CRect* r)
+inline CRect* ScaleRect(CRect* r)
 {
     float offset = GetHudOffset();
     if (g_skipXCorrection)
@@ -86,7 +78,7 @@ static inline CRect* ScaleRect(CRect* r)
     return r;
 }
 
-static CRect ComputeContentRect(CSprite2d* sprite2d, const CRect* rect)
+CRect ComputeContentRect(CSprite2d* sprite2d, const CRect* rect)
 {
     float w = DEFAULT_ASPECT_RATIO, h = 1.0f; // default 4:3
 
@@ -109,7 +101,7 @@ static CRect ComputeContentRect(CSprite2d* sprite2d, const CRect* rect)
     return CRect(centerX - halfW, rect->bottom, centerX + halfW, rect->top);
 }
 
-static CRect ComputeCoverRect(CSprite2d* sprite2d, const CRect* rect)
+CRect ComputeCoverRect(CSprite2d* sprite2d, const CRect* rect)
 {
     float w = DEFAULT_ASPECT_RATIO, h = 1.0f;
 
@@ -133,8 +125,7 @@ static CRect ComputeCoverRect(CSprite2d* sprite2d, const CRect* rect)
     return CRect(0.0f, centerY + halfH, SCREEN_WIDTH, centerY - halfH);
 }
 
-export SafetyHookInline shDrawRect1 = {};
-static void DrawPillarBars(const CRect& content, float top, float bottom)
+void DrawPillarBars(const CRect& content, float top, float bottom)
 {
     g_drawingBars = true;
 
@@ -148,7 +139,7 @@ static void DrawPillarBars(const CRect& content, float top, float bottom)
     g_drawingBars = false;
 }
 
-export void DrawPillarBars43()
+void DrawPillarBars43()
 {
     if (std::abs(fWidescreenHudOffset43) > 0.0f)
     {
@@ -215,17 +206,6 @@ void __fastcall Draw1(CSprite2d* sprite2d, void* edx, CRect* rect, CRGBA* col)
     if (needsPillarbox43)
         DrawPillarBars43();
 
-    //bool isCover = g_isFullscreen && g_hasTexture
-    //    && sprite2d->m_pTexture->name
-    //    && std::string_view(sprite2d->m_pTexture->name) == "background";
-
-    //if (isCover)
-    //{
-    //    // Stretch to cover: zoom in, no pillar bars needed
-    //    g_contentRect = ComputeCoverRect(sprite2d, rect);
-    //    shDraw1.unsafe_fastcall(sprite2d, edx, rect, col);
-    //}
-    //else
     {
         if (g_isFullscreen && g_hasTexture) g_contentRect = ComputeContentRect(sprite2d, rect);
         shDraw1.unsafe_fastcall(sprite2d, edx, rect, col);
@@ -538,17 +518,6 @@ public:
                 auto pattern = hook::pattern("E8 ? ? ? ? E9 ? ? ? ? ? ? ? 8D 56");
                 shDraw1 = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first()).as_int(), Draw1);
 
-                //7284B0
-                //pattern = hook::pattern("E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 50 E8 ? ? ? ? A1 ? ? ? ? 59 50 E8 ? ? ? ? 59 83 C4 28");
-                //shDraw2 = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first()).as_int(), Draw2);
-
-                //728420
-                //pattern = hook::pattern("E8 ? ? ? ? E9 CB 09 00 00");
-                //shDraw3 = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first()).as_int(), Draw3);
-
-                //pattern = hook::pattern("E8 ? ? ? ? 83 BB ? ? ? ? ? 0F 85 ? ? ? ? 8B 83");
-                //shDraw4 = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first()).as_int(), Draw4);
-
                 pattern = hook::pattern("E8 ? ? ? ? 6A 00 6A FF E8 ? ? ? ? 83 C4 08 85 C0 74 ? 6A 00 6A FF E8 ? ? ? ? 8B 88");
                 shDraw5 = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first(4)).as_int(), Draw5);
 
@@ -568,10 +537,6 @@ public:
 
                 pattern = hook::pattern("E8 ? ? ? ? 83 C4 ? B0 ? 5B 83 C4");
                 shDrawRect2 = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first()).as_int(), DrawRect2);
-
-                //727C50
-                //pattern = hook::pattern("E8 ? ? ? ? 80 7B ? ? 0F 85 ? ? ? ? 8B 83");
-                //shDrawRectXLU = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first()).as_int(), DrawRectXLU);
 
                 pattern = hook::pattern("E8 ? ? ? ? 83 C4 ? 5B 83 C4 ? C3 ? ? ? ? ? ? 8A 44 24");
                 shAddToBuffer = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first()).as_int(), AddToBuffer);
@@ -602,3 +567,5 @@ public:
         };
     }
 } Sprite2d;
+
+}

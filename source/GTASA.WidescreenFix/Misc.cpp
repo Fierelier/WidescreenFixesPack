@@ -1,43 +1,42 @@
-module;
-
 #include <stdafx.h>
 #include "common.h"
 #include <d3d9.h>
 
-export module Misc;
+#include "Skeleton.h"
+#include "Camera.h"
+#include "Entity.h"
+#include "Physical.h"
+#include "Timer.h"
+#include "Draw.h"
 
-import Skeleton;
-import Frontend;
-import Camera;
-import Entity;
-import Physical;
-import Timer;
-import Draw;
+extern "C" DWORD _EAX_Misc = 0;
+
+namespace
+{
+
+__attribute__((naked)) void AllowMouseMovement()
+{
+    __asm__(
+        ".intel_syntax noprefix\n\t"
+        "mov [__EAX_Misc], eax\n\t"
+        "mov eax, dword ptr [0x8D621C]\n\t"
+        "cmp eax, 0\n\t"
+        "jne 1f\n\t"
+        "mov eax, [__EAX_Misc]\n\t"
+        "ret\n\t"
+        "1:\n\t"
+        "mov eax, [__EAX_Misc]\n\t"
+        "mov dword ptr [__EAX_Misc], 0x7453F0\n\t"
+        "jmp dword ptr [__EAX_Misc]\n\t"
+        ".att_syntax prefix\n\t"
+    );
+}
 
 injector::hook_back<void(__fastcall*)(CCamera*, void*, bool, bool)> hbCalculateDerivedValues;
 void __fastcall CalculateDerivedValues(CCamera* camera, void* edx, bool bForMirror, bool bOriented)
 {
     CCamera::UpdatePlayerVehicleSpeedBlur(camera);
     return hbCalculateDerivedValues.fun(camera, edx, bForMirror, bOriented);
-}
-
-DWORD _EAX;
-void __declspec(naked) AllowMouseMovement()
-{
-    _asm
-    {
-        mov _EAX, eax
-        mov eax, dword ptr ds : [0x8D621C]
-        cmp eax, 0
-        jne label1
-        mov eax, _EAX
-        ret
-
-        label1 :
-        mov eax, _EAX
-            mov _EAX, 0x7453F0
-            jmp _EAX
-    }
 }
 
 int* SelectedMultisamplingLevels = nullptr;
@@ -264,7 +263,7 @@ public:
             if (bAllowAltTabbingWithoutPausing)
             {
                 //Windowed mode fix (from MTA sources)
-                if ((GetWindowLong((HWND)RsGlobal->ps, GWL_STYLE) & WS_POPUP) == 0)
+                if ((GetWindowLong((HWND)RsGlobalFix->ps, GWL_STYLE) & WS_POPUP) == 0)
                 {
                     // Disable MENU AFTER alt + tab
                     //0053BC72   C605 7B67BA00 01 MOV BYTE PTR DS:[BA677B],1
@@ -299,21 +298,21 @@ public:
                     D3DCOLOR black = D3DCOLOR_ARGB(255, 0, 0, 0);
 
                     // Top 1px
-                    D3DRECT topRect = { 0, -5, RsGlobal->width, 1 };
+                    D3DRECT topRect = { 0, -5, RsGlobalFix->width, 1 };
                     RwD3DDevice->Clear(1, &topRect, D3DCLEAR_TARGET, black, 1.0f, 0);
 
                     // Left 1px
-                    D3DRECT leftRect = { -5, 0, 1, RsGlobal->height };
+                    D3DRECT leftRect = { -5, 0, 1, RsGlobalFix->height };
                     RwD3DDevice->Clear(1, &leftRect, D3DCLEAR_TARGET, black, 1.0f, 0);
 
                     if (nHideAABug > 1)
                     {
                         // Bottom 1px
-                        D3DRECT bottomRect = { 0, RsGlobal->height - 1, RsGlobal->width, RsGlobal->height + 5 };
+                        D3DRECT bottomRect = { 0, RsGlobalFix->height - 1, RsGlobalFix->width, RsGlobalFix->height + 5 };
                         RwD3DDevice->Clear(1, &bottomRect, D3DCLEAR_TARGET, black, 1.0f, 0);
 
                         // Right 1px
-                        D3DRECT rightRect = { RsGlobal->width - 1, 0, RsGlobal->width + 5, RsGlobal->height + 5 };
+                        D3DRECT rightRect = { RsGlobalFix->width - 1, 0, RsGlobalFix->width + 5, RsGlobalFix->height + 5 };
                         RwD3DDevice->Clear(1, &rightRect, D3DCLEAR_TARGET, black, 1.0f, 0);
                     }
                 };
@@ -345,3 +344,5 @@ public:
         };
     }
 } Misc;
+
+}

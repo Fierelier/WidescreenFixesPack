@@ -1,12 +1,11 @@
-module;
-
 #include <stdafx.h>
 #include "common.h"
 #include "callargs.h"
 
-export module MenuMap;
+#include "Skeleton.h"
 
-import Skeleton;
+namespace
+{
 
 class MenuMap
 {
@@ -139,3 +138,5 @@ public:
         };
     }
 } MenuMap;
+
+}

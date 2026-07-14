@@ -1,18 +1,15 @@
-module;
-
 #include <stdafx.h>
 #include "common.h"
 #include "callargs.h"
 #include <d3d9.h>
 
-export module TransparentMenu;
+#include "Skeleton.h"
+#include "Menu.h"
+#include "TransparentMenuDX9.h"
+#include "TransparentMenu.h"
 
-import Skeleton;
-import Menu;
-import TransparentMenuDX9;
-
-export bool gTransparentMenuCanRender = false;
-export bool gTransparentMenuWaitForGameplay = false;
+namespace
+{
 
 injector::hook_back<void(__cdecl*)(CRect*, uint8_t*)> hbDrawRect2;
 void __cdecl CSprite2d__DrawRect2(CRect* a1, uint8_t* a2)
@@ -72,3 +69,5 @@ public:
         };
     }
 } TransparentMenu;
+
+}

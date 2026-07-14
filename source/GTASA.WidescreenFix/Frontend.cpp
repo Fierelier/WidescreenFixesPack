@@ -1,53 +1,52 @@
-module;
-
 #include <stdafx.h>
 #include "common.h"
 #include <Zydis.h>
 
-export module Frontend;
+#include "Skeleton.h"
+#include "Sprite2d.h"
+#include "Draw.h"
+#include "Menu.h"
 
-import Skeleton;
-import Sprite2d;
-import Draw;
-import Menu;
+namespace
+{
 
 auto INV_SCREEN_WIDTH = [](float fAspectRatio) { return (1.0f / 640.0f) / (fAspectRatio / (4.0f / 3.0f)); };
 
-export ProtectedGameRef<float> ScaledResXRef;
-export ProtectedGameRef<float> ResXInvRef;
-export ProtectedGameRef<float> ResYInvRef;
+ProtectedGameRef<float> ScaledResXRef;
+ProtectedGameRef<float> ResXInvRef;
+ProtectedGameRef<float> ResYInvRef;
 
 std::array<std::pair<float, float>, 400> vHudScalePtrs;
 
 injector::hook_back<float(__stdcall*)(float)> hbStretchX;
 float __stdcall StretchX(float a1)
 {
-    if (RsGlobal->maximumWidth == 640)
+    if (RsGlobalFix->maximumWidth == 640)
         return a1;
 
     auto m_nCurrentMenuPage = *(int8_t*)((uintptr_t)FrontendMenuManager.get_ptr() + 0x15D);
 
     if (m_nCurrentMenuPage == SCREEN_MAP)
-        return hbStretchX.fun(a1 + std::abs(fWidescreenHudOffset43) * (640.0f / (float)RsGlobal->maximumWidth));
+        return hbStretchX.fun(a1 + std::abs(fWidescreenHudOffset43) * (640.0f / (float)RsGlobalFix->maximumWidth));
 
     const float distFromRight = 640.0f - a1;
-    const float scaledDist = RsGlobal->maximumWidth * distFromRight * INV_SCREEN_WIDTH(CDraw::GetAspectRatio());
-    return RsGlobal->maximumWidth - scaledDist;
+    const float scaledDist = RsGlobalFix->maximumWidth * distFromRight * INV_SCREEN_WIDTH(CDrawFix::GetAspectRatio());
+    return RsGlobalFix->maximumWidth - scaledDist;
 }
 
 SafetyHookInline shDisplaySlider = {};
 int __stdcall DisplaySlider(float x, float y, float unk0, float unk1, float width, float progress, signed int unk)
 {
-    if (RsGlobal->maximumWidth != 640)
+    if (RsGlobalFix->maximumWidth != 640)
     {
-        const float scaleCurrent = (float)RsGlobal->maximumWidth / 640.0f;
-        const float scale43 = (float)RsGlobal->maximumHeight / 480.0f;
+        const float scaleCurrent = (float)RsGlobalFix->maximumWidth / 640.0f;
+        const float scale43 = (float)RsGlobalFix->maximumHeight / 480.0f;
         const float x640 = x / scaleCurrent;
         const float width640 = width / scaleCurrent;
         const float unk640 = (float)unk / scaleCurrent; // slider bar thickness-ish
         const float distFromRight640 = 640.0f - (x640 + width640);
 
-        x = (float)RsGlobal->maximumWidth - (distFromRight640 * scale43) - (width640 * scale43);
+        x = (float)RsGlobalFix->maximumWidth - (distFromRight640 * scale43) - (width640 * scale43);
         width = width640 * scale43;
         unk = (signed int)std::lround(unk640 * scale43);
     }
@@ -112,7 +111,7 @@ public:
             };
 
             // collect from patterns
-            auto ptr = &RsGlobal->maximumWidth;
+            auto ptr = &RsGlobalFix->maximumWidth;
             pattern = hook::pattern(pattern_str(0xDB, 0x05, to_bytes(ptr)) + "D8 0D"); // fild + fmul
             pattern.for_each_result([&](hook::pattern_match match)
             {
@@ -170,7 +169,7 @@ public:
             pattern = hook::pattern("E8 ? ? ? ? 8B 4D ? 89 44 24 ? 8B 44 24");
             shDisplaySlider = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first()).as_int(), DisplaySlider);
 
-            onResChange() += [](int Width, int Height)
+            onResChange() += [=](int Width, int Height)
             {
                 float fAspectRatio = static_cast<float>(Width) / static_cast<float>(Height);
 
@@ -180,7 +179,7 @@ public:
 
                 for (auto& it : vHudScalePtrs)
                 {
-                    it.first = it.second / (CDraw::GetAspectRatio() / (4.0f / 3.0f));
+                    it.first = it.second / (CDrawFix::GetAspectRatio() / (4.0f / 3.0f));
                 }
             };
 
@@ -541,7 +540,7 @@ public:
                 // Make co-op in-car crosshair circular rather than an ellipse (clippy95)
                 injector::WriteMemory<uint8_t>(0x00743BCD, 0x34, true); // multiply by a4 rather than a3
 
-                onResChange() += [](int Width, int Height)
+                onResChange() += [=](int Width, int Height)
                 {
                     float fAspectRatio = static_cast<float>(Width) / static_cast<float>(Height);
 
@@ -551,10 +550,12 @@ public:
                     fHUDWidth *= fHudWidthScale;
                     fHUDHeight *= fHudHeightScale;
 
-                    fWeaponIconScaleX = 0.17343046f / (CDraw::GetAspectRatio() / (4.0f / 3.0f));
+                    fWeaponIconScaleX = 0.17343046f / (CDrawFix::GetAspectRatio() / (4.0f / 3.0f));
                     fWeaponIconScaleX *= fHudWidthScale;
                 };
             }
         };
     }
 } Frontend;
+
+}

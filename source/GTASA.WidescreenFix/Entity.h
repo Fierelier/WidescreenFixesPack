@@ -1,13 +1,10 @@
-module;
+#pragma once
 
 #include <stdafx.h>
 #include "rw.h"
+#include "Placeable.h"
 
-export module Entity;
-
-import Placeable;
-
-export class CEntity : public CPlaceable
+class CEntity : public CPlaceable
 {
 public:
     RwObject* m_pRwObject;						// 0x18

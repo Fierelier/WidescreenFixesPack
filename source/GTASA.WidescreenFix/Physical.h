@@ -1,12 +1,10 @@
-module;
+#pragma once
+
 #include <stdafx.h>
 #include <cstdint>
 #include "common.h"
-
-export module Physical;
-
-import Placeable;
-import Entity;
+#include "Placeable.h"
+#include "Entity.h"
 
 class CQuaternion
 {
@@ -15,7 +13,7 @@ public:
     float real;
 };
 
-export class CPhysical : public CEntity
+class CPhysical : public CEntity
 {
 public:
     int field_38;

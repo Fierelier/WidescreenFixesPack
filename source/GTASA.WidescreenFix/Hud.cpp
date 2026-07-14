@@ -1,17 +1,15 @@
-module;
-
 #include <stdafx.h>
 #include "common.h"
 #include "callargs.h"
 
-export module Hud;
+#include "Skeleton.h"
+#include "Draw.h"
+#include "Sprite2d.h"
+#include "Camera.h"
+#include "Menu.h"
 
-import Skeleton;
-import Draw;
-import Sprite2d;
-import Camera;
-import Frontend;
-import Menu;
+namespace
+{
 
 union tScriptParam
 {
@@ -80,7 +78,7 @@ bool IsScriptActiveByName(const char* scriptName)
     return false;
 }
 
-static const std::vector<std::string_view> kPillarBarScripts = {
+const std::vector<std::string_view> kPillarBarScripts = {
     "none",
     "bandit",
     "dual",
@@ -93,7 +91,7 @@ static const std::vector<std::string_view> kPillarBarScripts = {
     "dskool",
 };
 
-static bool IsAnyScriptActive(const std::vector<std::string_view>& names)
+bool IsAnyScriptActive(const std::vector<std::string_view>& names)
 {
     for (const auto name : names)
     {
@@ -103,12 +101,12 @@ static bool IsAnyScriptActive(const std::vector<std::string_view>& names)
     return false;
 }
 
-export namespace CFont
+namespace CFont
 {
     void (__cdecl* DrawFonts)() = nullptr;
 }
 
-export namespace CHud
+namespace CHud
 {
     SafetyHookInline shDrawScriptText = {};
     void __cdecl DrawScriptText(char priority)
@@ -274,3 +272,5 @@ public:
         };
     }
 } Hud;
+
+}

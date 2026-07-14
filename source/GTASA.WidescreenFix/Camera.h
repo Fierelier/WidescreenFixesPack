@@ -1,14 +1,14 @@
-module;
+#pragma once
 
 #include <stdafx.h>
 #include "rw.h"
+#include "Placeable.h"
+#include "Skeleton.h"
+#include "Entity.h"
+#include "Physical.h"
 
-export module Camera;
-
-import Placeable;
-import Skeleton;
-import Entity;
-import Physical;
+#include <stdafx.h>
+#include "rw.h"
 
 #define NUMBER_OF_VECTORS_FOR_AVERAGE   2
 #define CAM_NUM_TARGET_HISTORY          4
@@ -98,7 +98,7 @@ enum eCamMode : uint16_t
     MODE_AIMWEAPON_ATTACHED = 65                // 0x41
 };
 
-export enum class eMotionBlurType : uint32_t
+enum class eMotionBlurType : uint32_t
 {
     NONE = 0,
     SNIPER,
@@ -135,7 +135,7 @@ public:
     float* m_pArrPathData;
 };
 
-export class CCam
+class CCam
 {
 public:
     bool				bBelowMinDist;						// 0x0 //used for follow ped mode
@@ -282,7 +282,7 @@ enum class eSwitchType : uint16_t
     JUMPCUT
 };
 
-export class CCamera : public CPlaceable
+class CCamera : public CPlaceable
 {
 public:
     bool            m_bAboveGroundTrainNodesLoaded;
@@ -546,7 +546,7 @@ public:
     static void UpdatePlayerVehicleSpeedBlur(CCamera* camera);
 };
 
-export GameRef<CCamera> TheCamera([]() -> CCamera*
+inline GameRef<CCamera> TheCamera([]() -> CCamera*
 {
     auto pattern = hook::pattern("B9 ? ? ? ? E8 ? ? ? ? ? ? ? BE ? ? ? ? ? ? ? ? ? ? DF E0");
     if (!pattern.empty())
@@ -571,16 +571,16 @@ enum eVehicleType
     VEHICLE_TRAILER
 };
 
-bool IsHeli(int m_nVehicleType) { return m_nVehicleType == VEHICLE_HELI; }
-bool IsPlane(int m_nVehicleType) { return m_nVehicleType == VEHICLE_PLANE; }
-bool IsBoat(int m_nVehicleType) { return m_nVehicleType == VEHICLE_BOAT; }
-bool IsTrain(int m_nVehicleType) { return m_nVehicleType == VEHICLE_TRAIN; }
-bool IsFakeAircraft(int m_nVehicleType) { return m_nVehicleType == VEHICLE_FHELI || m_nVehicleType == VEHICLE_FPLANE; }
-bool IsBike(int m_nVehicleType) { return m_nVehicleType == VEHICLE_BIKE; }
-bool IsBMX(int m_nVehicleType) { return m_nVehicleType == VEHICLE_BMX; }
-bool IsTrailer(int m_nVehicleType) { return m_nVehicleType == VEHICLE_TRAILER; }
+inline bool IsHeli(int m_nVehicleType) { return m_nVehicleType == VEHICLE_HELI; }
+inline bool IsPlane(int m_nVehicleType) { return m_nVehicleType == VEHICLE_PLANE; }
+inline bool IsBoat(int m_nVehicleType) { return m_nVehicleType == VEHICLE_BOAT; }
+inline bool IsTrain(int m_nVehicleType) { return m_nVehicleType == VEHICLE_TRAIN; }
+inline bool IsFakeAircraft(int m_nVehicleType) { return m_nVehicleType == VEHICLE_FHELI || m_nVehicleType == VEHICLE_FPLANE; }
+inline bool IsBike(int m_nVehicleType) { return m_nVehicleType == VEHICLE_BIKE; }
+inline bool IsBMX(int m_nVehicleType) { return m_nVehicleType == VEHICLE_BMX; }
+inline bool IsTrailer(int m_nVehicleType) { return m_nVehicleType == VEHICLE_TRAILER; }
 
-void CCamera::UpdatePlayerVehicleSpeedBlur(CCamera* camera)
+inline void CCamera::UpdatePlayerVehicleSpeedBlur(CCamera* camera)
 {
     if (camera->m_pTargetEntity->nType == ENTITY_TYPE_PED)
         return;
@@ -606,7 +606,6 @@ void CCamera::UpdatePlayerVehicleSpeedBlur(CCamera* camera)
         IsTrailer(m_nVehicleType) ||
         IsBike(m_nVehicleType))
         return;
-
 
     float speedMul = ((std::min(1.0f, speed) - 0.65f) / (1.0f - 0.65f)) * 75;
     speedMul = std::clamp(speedMul, 0.0f, 1.0f);

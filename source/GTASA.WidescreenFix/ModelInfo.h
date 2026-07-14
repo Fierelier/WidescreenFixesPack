@@ -1,16 +1,15 @@
-module;
+#pragma once
+
 #include <cstdint>
 #include "rw.h"
 
-export module ModelInfo;
-
-export struct CBox
+struct CBox
 {
     CVector min;
     CVector max;
 };
 
-export struct CColSurface
+struct CColSurface
 {
     char material;
     char flag;
@@ -18,26 +17,26 @@ export struct CColSurface
     char light;
 };
 
-export struct CSphere
+struct CSphere
 {
     CVector m_vecCenter;
     float m_fRadius;
 };
 
-export struct CColSphere
+struct CColSphere
 {
     CSphere sphere;
     CColSurface surface;
 };
 
-export struct CColBox
+struct CColBox
 {
     CVector sup;
     CVector inf;
     CColSurface m_Surface;
 };
 
-export struct CColLine
+struct CColLine
 {
     CVector m_vecStart;
     float m_fStartSize;
@@ -45,14 +44,14 @@ export struct CColLine
     int m_fEndSize;
 };
 
-export struct CCompressedVector
+struct CCompressedVector
 {
     int16_t x;
     int16_t y;
     int16_t z;
 };
 
-export struct CColTriangle
+struct CColTriangle
 {
     int16_t a;
     int16_t b;
@@ -61,7 +60,7 @@ export struct CColTriangle
     char light;
 };
 
-export struct CColTrianglePlane
+struct CColTrianglePlane
 {
     CCompressedVector m_vNormal;
     int16_t distance;
@@ -69,7 +68,7 @@ export struct CColTrianglePlane
     char _pad;
 };
 
-export struct CColData
+struct CColData
 {
     int16_t m_wNumSpheres;
     int16_t m_wNumBoxes;
@@ -88,14 +87,14 @@ export struct CColData
     int m_pShadowTriangles;
 };
 
-export struct CColModel
+struct CColModel
 {
     CBox m_Box;
     CColSphere m_Sphere;
     CColData* m_pColData;
 };
 
-export struct CBaseModelInfo
+struct CBaseModelInfo
 {
     void* vmt;
     int m_dwKey;
@@ -154,9 +153,9 @@ struct C2dEffect
     t2dEffectUnion effect;
 };
 
-export namespace CModelInfo
+namespace CModelInfo
 {
-    CBaseModelInfo*** pp_modelInfoPtrs = nullptr;
-    CBaseModelInfo* (__cdecl* GetModelInfo)(const char* name, int* id) = nullptr;
-    C2dEffect* (__fastcall* Get2dEffect)(CBaseModelInfo* minfo, void* edx, int32_t i) = nullptr;
+    inline CBaseModelInfo*** pp_modelInfoPtrs = nullptr;
+    inline CBaseModelInfo* (__cdecl* GetModelInfo)(const char* name, int* id) = nullptr;
+    inline C2dEffect* (__fastcall* Get2dEffect)(CBaseModelInfo* minfo, void* edx, int32_t i) = nullptr;
 }

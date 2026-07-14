@@ -1,13 +1,12 @@
-module;
-
 #include <stdafx.h>
 #include "common.h"
 
-export module Sprite;
+#include "Draw.h"
+#include "Camera.h"
+#include "Skeleton.h"
 
-import Draw;
-import Camera;
-import Skeleton;
+namespace
+{
 
 bool CalcScreenCoors(const RwV3d* in, RwV3d* out, float* outw, float* outh, bool checkMaxVisible, bool checkMinVisible, float minVisibleZ)
 {
@@ -16,15 +15,15 @@ bool CalcScreenCoors(const RwV3d* in, RwV3d* out, float* outw, float* outh, bool
 
     if (checkMinVisible && out->z <= minVisibleZ)
         return false;
-    if (checkMaxVisible && out->z >= CDraw::GetFarClipZ())
+    if (checkMaxVisible && out->z >= CDrawFix::GetFarClipZ())
         return false;
 
     const float recip = 1.0f / out->z;
     out->x *= SCREEN_WIDTH * recip;
     out->y *= SCREEN_HEIGHT * recip;
 
-    const float fovScale = 70.0f / CDraw::GetFOV();
-    *outw = CDraw::ms_bFixSprites ? (fovScale * recip * SCREEN_HEIGHT) : (fovScale * SCREEN_SCALE_AR(recip) * SCREEN_WIDTH);
+    const float fovScale = 70.0f / CDrawFix::GetFOV();
+    *outw = CDrawFix::ms_bFixSprites ? (fovScale * recip * SCREEN_HEIGHT) : (fovScale * SCREEN_SCALE_AR(recip) * SCREEN_WIDTH);
     *outh = fovScale * recip * SCREEN_HEIGHT;
 
     return true;
@@ -33,7 +32,7 @@ bool CalcScreenCoors(const RwV3d* in, RwV3d* out, float* outw, float* outh, bool
 SafetyHookInline shCalcScreenCoors6 = {};
 bool __cdecl CalcScreenCoors6(const RwV3d* in, RwV3d* out, float* w, float* h, char checkMaxVisible, char checkMinVisible)
 {
-    return CalcScreenCoors(in, out, w, h, checkMaxVisible != 0, checkMinVisible != 0, CDraw::GetNearClipZ() + 1.0f);
+    return CalcScreenCoors(in, out, w, h, checkMaxVisible != 0, checkMinVisible != 0, CDrawFix::GetNearClipZ() + 1.0f);
 }
 
 SafetyHookInline shCalcScreenCoors4 = {};
@@ -59,3 +58,5 @@ public:
         };
     }
 } Sprite;
+
+}
