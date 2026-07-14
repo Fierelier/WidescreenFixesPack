@@ -1,10 +1,9 @@
-module;
+#pragma once
+
 #include <cstdint>
 #include "common.h"
 
-export module Placeable;
-
-export class CPlaceable
+class CPlaceable
 {
 protected:
     CMatrix m_matrix;

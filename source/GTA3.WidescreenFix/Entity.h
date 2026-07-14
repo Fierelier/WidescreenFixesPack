@@ -1,12 +1,10 @@
-module;
+#pragma once
+
 #include <cstdint>
 #include "common.h"
+#include "Placeable.h"
 
-export module Entity;
-
-import Placeable;
-
-export enum eEntityType
+enum eEntityType
 {
     ENTITY_TYPE_NOTHING = 0,
     ENTITY_TYPE_BUILDING,
@@ -16,7 +14,7 @@ export enum eEntityType
     ENTITY_TYPE_DUMMY,
 };
 
-export enum eEntityStatus
+enum eEntityStatus
 {
     STATUS_PLAYER,
     STATUS_PLAYER_PLAYBACKFROMBUFFER,
@@ -32,7 +30,7 @@ export enum eEntityStatus
     STATUS_PLAYER_DISABLED,
 };
 
-export class CEntity : public CPlaceable
+class CEntity : public CPlaceable
 {
 public:
     void* m_rwObject;

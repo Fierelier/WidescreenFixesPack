@@ -1,8 +1,7 @@
-module;
-
 #include <stdafx.h>
 
-export module VisibilityPlugins;
+namespace
+{
 
 class VisibilityPlugins
 {
@@ -17,3 +16,5 @@ public:
         };
     }
 } VisibilityPlugins;
+
+}

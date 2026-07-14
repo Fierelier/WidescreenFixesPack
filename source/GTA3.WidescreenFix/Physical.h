@@ -1,19 +1,17 @@
-module;
+#pragma once
+
 #include <stdafx.h>
 #include <cstdint>
 #include "common.h"
-
-export module Physical;
-
-import Placeable;
-import Entity;
+#include "Placeable.h"
+#include "Entity.h"
 
 enum
 {
     PHYSICAL_MAX_COLLISIONRECORDS = 6
 };
 
-export class CPhysical : public CEntity
+class CPhysical : public CEntity
 {
 public:
     int32_t m_audioEntityId;

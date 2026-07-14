@@ -1,12 +1,11 @@
-module;
-
 #include <stdafx.h>
 #include "common.h"
 
-export module Loading;
+#include "Skeleton.h"
+#include "Entity.h"
 
-import Skeleton;
-import Entity;
+namespace
+{
 
 class CPtrNode
 {
@@ -467,3 +466,5 @@ public:
         };
     }
 } Loading;
+
+}

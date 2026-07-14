@@ -1,13 +1,12 @@
-module;
-
 #include <stdafx.h>
 #include "common.h"
 
-export module Cam;
+#include "Skeleton.h"
+#include "Camera.h"
+#include "Draw.h"
 
-import Skeleton;
-import Camera;
-import Draw;
+namespace
+{
 
 class Cam
 {
@@ -24,7 +23,7 @@ public:
                     float fTweakFOV = 1.05f;
                     float fAspectRatio = (SCREEN_WIDTH / SCREEN_HEIGHT);
                     float result = fTweakFOV * fAspectRatio;
-                    _asm {fld dword ptr[result]}
+                    __asm__ __volatile__ ("flds %0" : : "m" (result));
                 }
             }; injector::MakeInline<Process_FollowPedWithMouse>(pattern.get_first(0), pattern.get_first(20));
 
@@ -38,9 +37,11 @@ public:
                     float Near = *(float*)(regs.esp + 0x50);
                     float tanHalfFOV = Tan(DEGTORAD(70.0f) / 2.0f);
                     float radius = Near * tanHalfFOV * fAspectRatio * fTweakFOV;
-                    _asm {fld dword ptr[radius]}
+                    __asm__ __volatile__ ("flds %0" : : "m" (radius));
                 }
             }; injector::MakeInline<Process_FollowPedWithMouse2>(pattern.get_first(0), pattern.get_first(6));
         };
     }
 } Cam;
+
+}

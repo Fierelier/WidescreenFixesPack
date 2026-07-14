@@ -1,56 +1,13 @@
-module;
-
 #include <stdafx.h>
 #include "common.h"
 #include <mmsystem.h>
 #pragma comment(lib, "winmm.lib") // needed for timeBeginPeriod()/timeEndPeriod()
 
-export module Menu;
+#include "Skeleton.h"
+#include "Menu.h"
 
-import Skeleton;
-
-export enum CutsceneBordersMode : int8_t
+namespace
 {
-    Off = 0,
-    Letterbox = 1,
-    Pillarbox = 2,
-    Both = 3
-};
-
-export enum FrameLimiterMode : int8_t
-{
-    eOff, e30, e40, e50, e60, e75, e100, e120, e144, e165, e200, e240
-};
-
-export namespace CMenuManager
-{
-    GameRef<int8_t> m_PrefsUseWideScreen([]() -> int8_t*
-    {
-        auto pattern = hook::pattern("C6 05 ? ? ? ? ? C6 05 ? ? ? ? ? 8B 45 ? 89 45");
-        if (!pattern.empty())
-            return *pattern.get_first<int8_t*>(2);
-        return nullptr;
-    });
-}
-
-export namespace CMenuManager
-{
-    GameRef<int8_t> m_PrefsFrameLimiter([]() -> int8_t*
-    {
-        auto pattern = hook::pattern("C6 05 ? ? ? ? ? C7 05 ? ? ? ? ? ? ? ? C6 05 ? ? ? ? ? C7 05 ? ? ? ? ? ? ? ? C6 05 ? ? ? ? ? C7 05 ? ? ? ? ? ? ? ? C6 05 ? ? ? ? ? C6 05");
-        if (!pattern.empty())
-            return *pattern.get_first<int8_t*>(2);
-        return nullptr;
-    });
-
-    GameRef<int8_t> m_bIsActive([]() -> int8_t*
-    {
-        auto pattern = hook::pattern("80 3D ? ? ? ? ? 74 ? 80 3D ? ? ? ? ? 0F 85 ? ? ? ? B9");
-        if (!pattern.empty())
-            return *pattern.get_first<int8_t*>(2);
-        return nullptr;
-    });
-}
 
 namespace CText
 {
@@ -290,7 +247,7 @@ private:
     }
 };
 
-static float GetFrameLimiterValue()
+float GetFrameLimiterValue()
 {
     switch (CMenuManager::m_PrefsFrameLimiter)
     {
@@ -331,7 +288,7 @@ bool __cdecl RsEventHandler(RsEvent event, void* data)
             bTimerResolutionSet = true;
         }
 
-        RsGlobal->maxFPS = static_cast<int32_t>(fFpsLimit);
+        RsGlobalFix->maxFPS = static_cast<int32_t>(fFpsLimit);
         fpsLimiter.Init(mode, fFpsLimit);
     }
 
@@ -410,3 +367,5 @@ public:
         };
     }
 } Menu;
+
+}

@@ -1,13 +1,11 @@
-module;
+#pragma once
+
 #include <stdafx.h>
 #include <cstdint>
 #include "common.h"
-
-export module Vehicle;
-
-import Placeable;
-import Entity;
-import Physical;
+#include "Placeable.h"
+#include "Entity.h"
+#include "Physical.h"
 
 using CPed = void;
 
@@ -161,7 +159,7 @@ public:
     CVehicle* m_pTargetCar;
 };
 
-export class CVehicle : public CPhysical
+class CVehicle : public CPhysical
 {
 public:
     // 0x128
@@ -295,17 +293,4 @@ public:
     bool IsAlarmOn(void) { return m_nAlarmState != 0 && m_nAlarmState != -1 && GetStatus() != STATUS_WRECKED; }
 };
 
-export CVehicle* (__cdecl* FindPlayerVehicle)() = nullptr;
-
-class Vehicle
-{
-public:
-    Vehicle()
-    {
-        WFP::onGameInitEvent() += []()
-        {
-            auto pattern = hook::pattern("E8 ? ? ? ? 85 C0 0F 84 ? ? ? ? E8 ? ? ? ? 89 D9");
-            FindPlayerVehicle = (decltype(FindPlayerVehicle))injector::GetBranchDestination(pattern.get_first()).as_int();
-        };
-    }
-} Vehicle;
+inline CVehicle* (__cdecl* FindPlayerVehicle)() = nullptr;

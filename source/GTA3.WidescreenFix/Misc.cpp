@@ -1,17 +1,16 @@
-module;
-
 #include <stdafx.h>
 #include "common.h"
 
-export module Misc;
+#include "Skeleton.h"
+#include "Frontend.h"
+#include "Camera.h"
+#include "Entity.h"
+#include "Vehicle.h"
+#include "Timer.h"
+#include "Draw.h"
 
-import Skeleton;
-import Frontend;
-import Camera;
-import Entity;
-import Vehicle;
-import Timer;
-import Draw;
+namespace
+{
 
 int ReplaceTextShadowWithOutline = 0;
 
@@ -93,10 +92,10 @@ namespace CFont
         if (!str)
             return shPrintString.unsafe_ccall(x, y, str);
 
-        if (Details->m_bBackground)
+        if (::CFont::Details->m_bBackground)
             return shPrintString.unsafe_ccall(x, y, str);
 
-        CRGBA originalColor = Details->m_Color;
+        CRGBA originalColor = ::CFont::Details->m_Color;
 
         if (originalColor.red == 1 && originalColor.green == 1 && originalColor.blue == 1)
             return;
@@ -133,7 +132,7 @@ namespace CFont
         for (int i = 0; i < sampleCount; ++i)
         {
             outlineColor.a = perPassAlpha;
-            Details->m_Color = outlineColor;
+            ::CFont::Details->m_Color = outlineColor;
 
             const float ox = SCREEN_SCALE_X(dirs16[i][0] * outlineStrength);
             const float oy = SCREEN_SCALE_Y(dirs16[i][1] * outlineStrength);
@@ -160,14 +159,14 @@ namespace CFont
         }
         #endif
 
-        SetColor(&originalColor);
+        ::CFont::Details->m_Color = originalColor;
         shPrintString.unsafe_ccall(x, y, str);
     }
 
     SafetyHookInline shSetDropColor = {};
     void __cdecl SetDropColor(CRGBA* color)
     {
-        Details->m_DropColor = { 0, 0, 0, 0 };
+        ::CFont::Details->m_DropColor = { 0, 0, 0, 0 };
     }
 }
 
@@ -333,3 +332,5 @@ public:
         };
     }
 } Misc;
+
+}

@@ -1,21 +1,20 @@
-module;
-
 #include <stdafx.h>
 #include "common.h"
 
-export module Main;
+#include "Draw.h"
+#include "Skeleton.h"
+#include "Camera.h"
+#include "Entity.h"
+#include "CutsceneMgr.h"
 
-import Draw;
-import Skeleton;
-import Camera;
-import Entity;
-import CutsceneMgr;
+namespace
+{
 
-export GameRef<CScene> Scene;
+GameRef<CScene> Scene;
 
-export CEntity* (__cdecl* FindPlayerPed)() = nullptr;
-export CEntity* (__cdecl* FindPlayerVehicle)() = nullptr;
-export void (__cdecl* RwCameraSetNearClipPlane)(RwCamera* camera, float nearClip) = nullptr;
+CEntity* (__cdecl* FindPlayerPed)() = nullptr;
+CEntity* (__cdecl* FindPlayerVehicle)() = nullptr;
+void (__cdecl* RwCameraSetNearClipPlane)(RwCamera* camera, float nearClip) = nullptr;
 
 SafetyHookInline shCameraSize = {};
 void __cdecl CameraSize(RwCamera* camera, RwRect* rect, float viewWindow, float aspectRatio)
@@ -46,7 +45,6 @@ public:
     {
         WFP::onInitEvent() += []()
         {
-            // default res
             auto [x, y] = GetDesktopRes();
             auto pattern = hook::pattern("81 3C ? ? ? ? ? 75 ? 81 7C 24 ? ? ? ? ? 75 ? 83 7C 24 ? ? 75 ? 8B 44 24 ? 83 E0 ? 75");
             injector::WriteMemory<int32_t>(pattern.get_first(3), x, true);
@@ -74,13 +72,13 @@ public:
             pattern = hook::pattern("E8 ? ? ? ? 80 3D ? ? ? ? ? 74 ? 81 3D");
             static auto Idle1 = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
             {
-                CDraw::SetAspectRatio(CDraw::FindAspectRatio());
+                CDrawFix::SetAspectRatio(CDrawFix::FindAspectRatio());
             });
 
             pattern = hook::pattern("83 3D ? ? ? ? ? ? ? 74 ? 83 C4");
             static auto FrontendIdle1 = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
             {
-                CDraw::SetAspectRatio(CDraw::FindAspectRatio());
+                CDrawFix::SetAspectRatio(CDrawFix::FindAspectRatio());
             });
 
             //DoFade
@@ -124,7 +122,7 @@ public:
 
                 if (!CCutsceneMgr::IsRunning() || CCutsceneMgr::ms_useLodMultiplier)
                 {
-                    LODDistMultiplier = (70.0f * CDraw::GetAspectRatio() / (4.0f / 3.0f)) / CDraw::GetFOV();
+                    LODDistMultiplier = (70.0f * CDrawFix::GetAspectRatio() / (4.0f / 3.0f)) / CDrawFix::GetFOV();
 
                     //if ((TheCamera->GetPosition().z > 55.0f && FindPlayerVehicle()))
                     //{
@@ -146,8 +144,10 @@ public:
             injector::MakeNOP(pattern.get_first(), 10, true);
             static auto Process_WheelCamFOV = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
             {
-                *(float*)(regs.ebx + 0xB0) = CDraw::ConvertFOVInverse(70.0f);
+                *(float*)(regs.ebx + 0xB0) = CDrawFix::ConvertFOVInverse(70.0f);
             });
         };
     }
 } Main;
+
+}

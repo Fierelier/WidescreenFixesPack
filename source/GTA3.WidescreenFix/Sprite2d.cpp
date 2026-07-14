@@ -1,16 +1,16 @@
-module;
-
 #include <stdafx.h>
 #include "common.h"
 
-export module Sprite2d;
+#include "Skeleton.h"
+#include "Camera.h"
+#include "Draw.h"
+#include "Timer.h"
+#include "Menu.h"
+#include "TransparentMenu.h"
+#include "Sprite2d.h"
 
-import Skeleton;
-import Camera;
-import Draw;
-import Timer;
-import Menu;
-import TransparentMenu;
+namespace
+{
 
 using RwIm2DVertex = void;
 
@@ -20,7 +20,6 @@ public:
     RwTexture* m_pTexture;
 };
 
-export bool g_noBorderAnim = false;
 float s_bordersMult = 0.0f;
 float s_barHeight = 0.0f;
 float s_pillarWidth = 0.0f;
@@ -31,7 +30,6 @@ uint32_t s_lastTickMs = 0;
 uint32_t s_lastExitDrawMs = 0;
 constexpr float BORDER_ANIM_SECS = 0.35f;
 
-export bool g_isMouseCursor = false;
 bool g_skipXCorrection = false;
 bool g_isFullscreen = false;
 bool g_hasTexture = false;
@@ -39,7 +37,7 @@ uint8_t g_alpha = 255;
 CRect g_contentRect = {};
 bool g_drawingBars = false;
 
-static inline float CorrectX(float x)
+inline float CorrectX(float x)
 {
     #if 0
     float arScale = DEFAULT_ASPECT_RATIO / SCREEN_ASPECT_RATIO;
@@ -50,7 +48,7 @@ static inline float CorrectX(float x)
     return x;
 }
 
-static inline bool IsFullscreen(const CRect* r)
+inline bool IsFullscreen(const CRect* r)
 {
     return r->left <= 0.5f
         && r->top <= 0.5f
@@ -58,17 +56,14 @@ static inline bool IsFullscreen(const CRect* r)
         && r->bottom >= SCREEN_HEIGHT - 0.5f;
 }
 
-export bool g_wantsToMoveHudLeft = false;
-export bool g_wantsToMoveHudRight = false;
-
-static inline float GetHudOffset()
+inline float GetHudOffset()
 {
     if (g_wantsToMoveHudLeft)  return -fWidescreenHudOffset;
     if (g_wantsToMoveHudRight) return  fWidescreenHudOffset;
     return 0.0f;
 }
 
-static inline CRect* ScaleRect(CRect* r)
+inline CRect* ScaleRect(CRect* r)
 {
     float offset = GetHudOffset();
     if (g_skipXCorrection)
@@ -81,7 +76,7 @@ static inline CRect* ScaleRect(CRect* r)
     return r;
 }
 
-static CRect ComputeContentRect(CSprite2d* sprite2d, const CRect* rect)
+CRect ComputeContentRect(CSprite2d* sprite2d, const CRect* rect)
 {
     float w = DEFAULT_ASPECT_RATIO, h = 1.0f; // default 4:3
 
@@ -104,7 +99,7 @@ static CRect ComputeContentRect(CSprite2d* sprite2d, const CRect* rect)
     return CRect(centerX - halfW, rect->bottom, centerX + halfW, rect->top);
 }
 
-static CRect ComputeCoverRect(CSprite2d* sprite2d, const CRect* rect)
+CRect ComputeCoverRect(CSprite2d* sprite2d, const CRect* rect)
 {
     float w = DEFAULT_ASPECT_RATIO, h = 1.0f;
 
@@ -128,8 +123,7 @@ static CRect ComputeCoverRect(CSprite2d* sprite2d, const CRect* rect)
     return CRect(0.0f, centerY + halfH, SCREEN_WIDTH, centerY - halfH);
 }
 
-export SafetyHookInline shDrawRect1 = {};
-static void DrawPillarBars(const CRect& content, float top, float bottom)
+void DrawPillarBars(const CRect& content, float top, float bottom)
 {
     g_drawingBars = true;
 
@@ -306,19 +300,15 @@ void __cdecl SetVertices2(CRect* posn, CRGBA* colorLeft, CRGBA* colorTop, CRGBA*
 
     if (g_drawingBars)
     {
-        // bar rects already in screen space, pass through
     }
     else if (g_isFullscreen && g_hasTexture)
     {
-        // textured fullscreen: apply texture-aspect-derived rect
         *posn = g_contentRect;
     }
     else if (!g_isFullscreen)
     {
-        // normal UI element: scale
         ScaleRect(posn);
     }
-    // else: untextured fullscreen (fade/overlay): stretch, don't touch
     return shSetVertices2.unsafe_ccall(posn, colorLeft, colorTop, colorRight, colorBottom, _far);
 }
 
@@ -427,14 +417,12 @@ void __fastcall DrawBordersForWideScreen(CCamera* camera, void* edx)
 
         if (screenAspect > contentAspect)
         {
-            // Pillarbox
             s_hasPillar = true;
             float contentWidth = SCREEN_HEIGHT * contentAspect;
             s_pillarWidth = (SCREEN_WIDTH - contentWidth) * 0.5f;
         }
         else
         {
-            // Letterbox
             s_hasLetterbox = true;
             float contentHeight = SCREEN_WIDTH / contentAspect;
             s_barHeight = (SCREEN_HEIGHT - contentHeight) * 0.5f;
@@ -446,7 +434,6 @@ void __fastcall DrawBordersForWideScreen(CCamera* camera, void* edx)
         s_lastActiveMs = now;
     }
 
-    // Render whenever the animation multiplier is still visible
     auto pref = CMenuManager::m_PrefsUseWideScreen.get();
     bool canRender = s_bordersMult > 0.01f && (shouldComputeGeometry || !g_noBorderAnim);
     if (pref && canRender)
@@ -541,7 +528,6 @@ public:
             }
 
             {
-                // Draw black border for sniper and rocket launcher
                 auto pattern = hook::pattern("E8 ? ? ? ? 59 59 B9 ? ? ? ? E8");
                 static auto Render2dStuff = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
                 {
@@ -549,7 +535,6 @@ public:
                     g_skipXCorrection = true;
                     g_drawingBars = true;
 
-                    // Sniper
                     CRect t1(0.0f, 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT / 2 - SCREEN_SCALE_Y(210));
                     CRect t2(0.0f, SCREEN_HEIGHT / 2 + SCREEN_SCALE_Y(210), SCREEN_WIDTH, SCREEN_HEIGHT);
                     CRect t3(0.0f, 0.0f, SCREEN_WIDTH / 2 - SCREEN_SCALE_X(210), SCREEN_HEIGHT);
@@ -566,3 +551,5 @@ public:
         };
     }
 } Sprite2d;
+
+}

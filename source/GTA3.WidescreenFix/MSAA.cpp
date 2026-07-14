@@ -1,14 +1,13 @@
-module;
-
 #include <stdafx.h>
 #include "common.h"
 #include <dxsdk/dx8/d3d8.h>
 
-export module MSAA;
+#include "Skeleton.h"
 
-import Skeleton;
+namespace
+{
 
-export GameRef<IDirect3DDevice8*> RwD3DDevice([]() -> IDirect3DDevice8**
+GameRef<IDirect3DDevice8*> RwD3DDevice([]() -> IDirect3DDevice8**
 {
     auto pattern = hook::pattern("A1 ? ? ? ? 53 8B 18");
     if (!pattern.empty())
@@ -16,7 +15,7 @@ export GameRef<IDirect3DDevice8*> RwD3DDevice([]() -> IDirect3DDevice8**
     return nullptr;
 });
 
-export GameRef<unsigned int> MaxMultisamplingLevels([]() -> unsigned int*
+GameRef<unsigned int> MaxMultisamplingLevels([]() -> unsigned int*
 {
     auto pattern = find_pattern("89 1D ? ? ? ? 89 1D ? ? ? ? BE ? ? ? ? EB", "89 15 ? ? ? ? BE ? ? ? ? 83 C4 ? A1 ? ? ? ? 89 74 24");
     if (!pattern.empty())
@@ -24,7 +23,7 @@ export GameRef<unsigned int> MaxMultisamplingLevels([]() -> unsigned int*
     return nullptr;
 });
 
-export GameRef<unsigned int> SelectedMultisamplingLevels([]() -> unsigned int*
+GameRef<unsigned int> SelectedMultisamplingLevels([]() -> unsigned int*
 {
     auto pattern = find_pattern("89 1D ? ? ? ? A1 ? ? ? ? 8B 0D", "89 15 ? ? ? ? 89 15 ? ? ? ? BE");
     if (!pattern.empty())
@@ -96,25 +95,23 @@ public:
 
                 D3DCOLOR black = D3DCOLOR_ARGB(255, 0, 0, 0);
 
-                // Top 1px
-                D3DRECT topRect = { 0, -5, RsGlobal->width, 1 };
+                D3DRECT topRect = { 0, -5, RsGlobalFix->width, 1 };
                 RwD3DDevice->Clear(1, &topRect, D3DCLEAR_TARGET, black, 1.0f, 0);
 
-                // Left 1px
-                D3DRECT leftRect = { -5, 0, 1, RsGlobal->height };
+                D3DRECT leftRect = { -5, 0, 1, RsGlobalFix->height };
                 RwD3DDevice->Clear(1, &leftRect, D3DCLEAR_TARGET, black, 1.0f, 0);
 
                 if (nHideAABug > 1)
                 {
-                    // Bottom 1px
-                    D3DRECT bottomRect = { 0, RsGlobal->height - 1, RsGlobal->width, RsGlobal->height + 5 };
+                    D3DRECT bottomRect = { 0, RsGlobalFix->height - 1, RsGlobalFix->width, RsGlobalFix->height + 5 };
                     RwD3DDevice->Clear(1, &bottomRect, D3DCLEAR_TARGET, black, 1.0f, 0);
 
-                    // Right 1px
-                    D3DRECT rightRect = { RsGlobal->width - 1, 0, RsGlobal->width + 5, RsGlobal->height + 5 };
+                    D3DRECT rightRect = { RsGlobalFix->width - 1, 0, RsGlobalFix->width + 5, RsGlobalFix->height + 5 };
                     RwD3DDevice->Clear(1, &rightRect, D3DCLEAR_TARGET, black, 1.0f, 0);
                 }
             };
         };
     }
 } MSAA;
+
+}

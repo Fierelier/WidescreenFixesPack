@@ -1,58 +1,10 @@
-module;
-
 #include <stdafx.h>
 #include "common.h"
 #include <dxsdk/dx8/d3d8.h>
 
-export module TransparentMenuDX8;
+#include "TransparentMenuDX8.h"
 
-import Skeleton;
-import Menu;
-
-struct ScreenVertex
-{
-    float x, y, z, rhw;
-    DWORD color;
-    float u, v;
-};
-
-#define D3DFVF_SCREENVERTEX (D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1)
-
-export class TransparentMenuDX8
-{
-private:
-    struct Resources
-    {
-        IDirect3DSurface8* captureSurf = nullptr; // D3DPOOL_SYSTEMMEM — safe to CopyRects into
-        IDirect3DTexture8* renderTex = nullptr; // D3DPOOL_MANAGED   — safe for SetTexture, no RT state side-effects
-        int fbWidth = 0;
-        int fbHeight = 0;
-
-        bool initialised = false;
-        bool captureReady = false;
-    };
-
-    static inline Resources s_res;
-
-    static IDirect3DDevice8* GetDevice8()
-    {
-        return *reinterpret_cast<IDirect3DDevice8**>(pD3D8Device);
-    }
-
-    static bool IsDeviceReady()
-    {
-        auto* dev = GetDevice8();
-        if (!dev) return false;
-        return dev->TestCooperativeLevel() == D3D_OK;
-    }
-
-    static void InitResources(IDirect3DDevice8* dev);
-
-public:
-    static bool CaptureFrame();
-    static void RenderBlur();
-    static void OnDeviceReset();
-};
+TransparentMenuDX8::Resources TransparentMenuDX8::s_res;
 
 void TransparentMenuDX8::InitResources(IDirect3DDevice8* dev)
 {
@@ -65,13 +17,9 @@ void TransparentMenuDX8::InitResources(IDirect3DDevice8* dev)
     backBuffer->GetDesc(&desc);
     backBuffer->Release();
 
-    // System-memory surface — CopyRects from back buffer is valid here,
-    // and does NOT touch any render-target or transform internal state.
     if (FAILED(dev->CreateImageSurface(desc.Width, desc.Height, desc.Format, &s_res.captureSurf)))
         return;
 
-    // Managed texture — no D3DUSAGE_RENDERTARGET, so the driver never
-    // re-points its internal RT / transform matrix pointers on creation.
     if (FAILED(dev->CreateTexture(desc.Width, desc.Height, 1,
         0, desc.Format, D3DPOOL_MANAGED, &s_res.renderTex)))
     {
@@ -97,12 +45,10 @@ bool TransparentMenuDX8::CaptureFrame()
     IDirect3DSurface8* backBuffer = nullptr;
     if (FAILED(dev->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &backBuffer))) return false;
 
-    // Copy back buffer → system-memory surface (always legal in DX8).
     HRESULT hr = dev->CopyRects(backBuffer, nullptr, 0, s_res.captureSurf, nullptr);
     backBuffer->Release();
     if (FAILED(hr)) return false;
 
-    // Upload system-memory surface → managed texture via lock/blit.
     IDirect3DSurface8* texSurf = nullptr;
     if (FAILED(s_res.renderTex->GetSurfaceLevel(0, &texSurf)) || !texSurf) return false;
 

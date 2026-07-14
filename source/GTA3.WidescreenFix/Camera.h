@@ -1,15 +1,12 @@
-module;
+#pragma once
 
 #include <stdafx.h>
 #include "common.h"
-
-export module Camera;
-
-import Placeable;
-import Timer;
-import Skeleton;
-import Entity;
-import Vehicle;
+#include "Placeable.h"
+#include "Timer.h"
+#include "Skeleton.h"
+#include "Entity.h"
+#include "Vehicle.h"
 
 using CAutomobile = void;
 using CPed = void;
@@ -29,7 +26,7 @@ enum
     CAMCONTROL_OBBE
 };
 
-export enum
+enum
 {
     MOTION_BLUR_NONE = 0,
     MOTION_BLUR_SNIPER,
@@ -86,7 +83,7 @@ struct CTrainCamNode
     float m_fNearClip;
 };
 
-export class CCam
+class CCam
 {
 public:
     enum CameraMode : int
@@ -232,7 +229,7 @@ public:
     bool m_bFirstPersonRunAboutActive = false;
 };
 
-export class CCamera : public CPlaceable
+class CCamera : public CPlaceable
 {
 public:
     bool m_bAboveGroundTrainNodesLoaded = false;
@@ -487,7 +484,7 @@ public:
     static void UpdatePlayerVehicleSpeedBlur(CCamera* camera);
 };
 
-export GameRef<CCamera> TheCamera([]() -> CCamera*
+inline GameRef<CCamera> TheCamera([]() -> CCamera*
 {
     auto pattern = hook::pattern("B9 ? ? ? ? 53 E8 ? ? ? ? 53");
     if (!pattern.empty())
@@ -495,7 +492,7 @@ export GameRef<CCamera> TheCamera([]() -> CCamera*
     return nullptr;
 });
 
-void CCamera::UpdatePlayerVehicleSpeedBlur(CCamera* camera)
+inline void CCamera::UpdatePlayerVehicleSpeedBlur(CCamera* camera)
 {
     if (camera->pTargetEntity->GetType() == ENTITY_TYPE_PED)
         return;
@@ -514,7 +511,6 @@ void CCamera::UpdatePlayerVehicleSpeedBlur(CCamera* camera)
         FindPlayerVehicle()->IsPlane() ||
         FindPlayerVehicle()->IsBike())
         return;
-
 
     float speedMul = ((std::min(1.0f, speed) - 0.65f) / (1.0f - 0.65f)) * 75;
     speedMul = std::clamp(speedMul, 0.0f, 1.0f);

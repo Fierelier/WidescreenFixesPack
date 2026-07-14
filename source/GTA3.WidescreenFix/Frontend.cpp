@@ -1,71 +1,15 @@
-module;
-
 #include <stdafx.h>
 #include "common.h"
 
-export module Frontend;
+#include "Skeleton.h"
+#include "Sprite2d.h"
+#include "Draw.h"
+#include "Frontend.h"
 
-import Skeleton;
-import Sprite2d;
-import Draw;
+namespace
+{
 
 auto INV_SCREEN_WIDTH = [](float fAspectRatio) { return (1.0f / 640.0f) / (fAspectRatio / (4.0f / 3.0f)); };
-
-export enum FrontendClass
-{
-    eCDarkel,
-    eCMenuManager,
-    eLoadingScreen,
-    eCRadar,
-    eCHud,
-    ecMusicManager,
-    eConvertingTexturesScreen,
-    eCReplay,
-
-    FrontendClassCount
-};
-
-export struct __declspec(align(4)) CFontDetails
-{
-    CRGBA m_Color;
-    CVector2D m_vecScale;
-    float m_fSlant;
-    CVector2D m_vecSlantRefPoint;
-    bool m_bJustify;
-    bool m_bCentre;
-    bool m_bRightJustify;
-    bool m_bBackground;
-    bool m_bBackGroundOnlyText;
-    bool m_bProp;
-    char _pad1E[2];
-    float m_fAlphaFade;
-    CRGBA m_BackgroundColor;
-    float m_fWrapX;
-    float m_fCentreSize;
-    float m_fRightJustifyWrap;
-    int16_t m_nStyle;
-    char _pad36[2];
-    int m_nBank;
-    int16_t m_nDropShadowPosition;
-    CRGBA m_DropColor;
-    char _pad42[2];
-};
-
-export namespace CFont
-{
-    void (__cdecl* SetColor)(CRGBA* color) = nullptr;
-
-    export GameRef<CFontDetails> Details([]() -> CFontDetails*
-    {
-        auto pattern = hook::pattern("68 ? ? ? ? 52 0F BF 05");
-        if (!pattern.empty())
-            return *pattern.get_first<CFontDetails*>(1);
-        return nullptr;
-    });
-}
-
-export std::array<ProtectedGameRef<float>, FrontendClassCount> ResXInvRefs;
-export std::array<ProtectedGameRef<float>, FrontendClassCount> ResYInvRefs;
 
 namespace CMenuManager
 {
@@ -73,12 +17,12 @@ namespace CMenuManager
     float __fastcall StretchX(void* CMenuManager, void* edx, float fScaleFactor)
     {
         if (fScaleFactor == 225.0f || fScaleFactor == 415.0f) //logo
-            fScaleFactor = ((640.0f * (CDraw::GetAspectRatio() / (4.0f / 3.0f))) / 2.0f) - (320.0f - fScaleFactor);
+            fScaleFactor = ((640.0f * (CDrawFix::GetAspectRatio() / (4.0f / 3.0f))) / 2.0f) - (320.0f - fScaleFactor);
 
         if (fScaleFactor == 320.0f || fScaleFactor == 321.0f)
-            return fScaleFactor * 0.0015625f * (float)RsGlobal->maximumWidth;
+            return fScaleFactor * 0.0015625f * (float)RsGlobalFix->maximumWidth;
         else
-            return fScaleFactor * INV_SCREEN_WIDTH(CDraw::GetAspectRatio()) * (float)RsGlobal->maximumWidth;
+            return fScaleFactor * INV_SCREEN_WIDTH(CDrawFix::GetAspectRatio()) * (float)RsGlobalFix->maximumWidth;
     }
 }
 
@@ -172,7 +116,7 @@ public:
             static float fChatRadioOffset = 0.0f;
             static float fMp33RadioOffset = 0.0f;
 
-            onResChange() += [](int Width, int Height)
+            onResChange() += [=](int Width, int Height)
             {
                 float fAspectRatio = static_cast<float>(Width) / static_cast<float>(Height);
 
@@ -229,7 +173,7 @@ public:
                 static float fCustomWideScreenWidthScaleDown = 1.0f / 640.0f;
                 static float fCustomWideScreenHeightScaleDown = 1.0f / 480.0f;
 
-                onResChange() += [](int Width, int Height)
+                onResChange() += [=](int Width, int Height)
                 {
                     float fAspectRatio = static_cast<float>(Width) / static_cast<float>(Height);
                     fCustomWideScreenWidthScaleDown = INV_SCREEN_WIDTH(fAspectRatio) * fHudWidthScale;
@@ -262,7 +206,6 @@ public:
 
                 auto pattern = hook::pattern("50 D8 0D ? ? ? ? D8 0D ? ? ? ? D9 1C 24 E8"); //0x57E954 radio text
                 injector::WriteMemory(pattern.count(28).get(24).get<uint32_t>(3), &fCustomWideScreenWidthScaleDown, true);
-                //injector::WriteMemory(pattern.count(28).get(25).get<uint32_t>(3), &fCustomWideScreenWidthScaleDown, true);
                 injector::WriteMemory(pattern.count(28).get(27).get<uint32_t>(3), &fCustomWideScreenWidthScaleDown, true);//0x595F45 replay
 
                 pattern = hook::pattern("50 D8 0D ? ? ? ? D8 0D ? ? ? ? D9 1C 24 DB 05 ? ? ? ? 50"); //0x57E93E radio text
@@ -349,3 +292,5 @@ public:
         };
     }
 } Frontend;
+
+}

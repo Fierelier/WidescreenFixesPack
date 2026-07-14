@@ -1,31 +1,29 @@
-module;
-
 #include <stdafx.h>
 #include "common.h"
 
-export module Sprite;
+#include "Draw.h"
+#include "Camera.h"
+#include "Skeleton.h"
 
-import Draw;
-import Camera;
-import Skeleton;
+namespace
+{
 
 SafetyHookInline shCalcScreenCoors = {};
 bool __cdecl CalcScreenCoors(const RwV3d* in, RwV3d* out, float* outw, float* outh, bool farclip)
 {
     CVector viewvec = TheCamera->m_viewMatrix * *in;
     *out = viewvec;
-    if (out->z <= CDraw::GetNearClipZ() + 1.0f)
+    if (out->z <= CDrawFix::GetNearClipZ() + 1.0f)
         return false;
-    if (out->z >= CDraw::GetFarClipZ() && farclip)
+    if (out->z >= CDrawFix::GetFarClipZ() && farclip)
         return false;
     float recip = 1.0f / out->z;
     out->x *= SCREEN_WIDTH * recip;
     out->y *= SCREEN_HEIGHT * recip;
     const float fov = 70.0f;
-    // this is used to scale correctly if you zoom in with sniper rifle
-    float fovScale = fov / CDraw::GetFOV();
+    float fovScale = fov / CDrawFix::GetFOV();
 
-    *outw = CDraw::ms_bFixSprites ? (fovScale * recip * SCREEN_HEIGHT) : (fovScale * SCREEN_SCALE_AR(recip) * SCREEN_WIDTH);
+    *outw = CDrawFix::ms_bFixSprites ? (fovScale * recip * SCREEN_HEIGHT) : (fovScale * SCREEN_SCALE_AR(recip) * SCREEN_WIDTH);
     *outh = fovScale * recip * SCREEN_HEIGHT;
 
     return true;
@@ -43,3 +41,5 @@ public:
         };
     }
 } Sprite;
+
+}

@@ -1,10 +1,11 @@
-﻿module;
+#include <stdafx.h>
+#include "GTA/common.h"
+#include "GTA/global.h"
 
-#include "stdafx.h"
-#include "GTA\common.h"
-#include "GTA\global.h"
+#include "Legacy.h"
 
-export module Legacy;
+namespace
+{
 
 hook::pattern dwGameLoadStatePattern, DxInputNeedsExclusive, EmergencyVehiclesFixPattern, RadarScalingPattern;
 hook::pattern MenuPattern, MenuPattern15625, RsSelectDevicePattern, CDarkelDrawMessagesPattern, CDarkelDrawMessagesPattern2, CParticleRenderPattern;
@@ -666,7 +667,7 @@ injector::hook_back<void(__cdecl*)(CRect&, CRGBA const&, CRGBA const&, CRGBA con
 static void __cdecl SetVerticesHook(CRect& a1, CRGBA const& a2, CRGBA const& a3, CRGBA const& a4, CRGBA const& a5, unsigned int a6)
 {
     uint32_t pTexture = 0;
-    _asm mov pTexture, ebx
+    __asm__ __volatile__ ("movl %%ebx, %0" : "=r"(pTexture));
 
     if (static_cast<int>(a1.m_fRight) == RsGlobal->MaximumWidth && static_cast<int>(a1.m_fBottom) == RsGlobal->MaximumHeight)
     {
@@ -734,7 +735,9 @@ void Fix2DSprites()
     pRwRenderStateSet = (void*)injector::GetBranchDestination(pattern.get_first()).as_int(); //0x649BA0
 }
 
-export void LegacyUpdateVars()
+}
+
+void LegacyUpdateVars()
 {
     fCrosshairPosFactor = ((0.52999997f - 0.5f) / ((*CDraw::pfScreenAspectRatio) / (16.0f / 9.0f))) + 0.5f;
     fCrosshairHeightScaleDown = fWideScreenWidthScaleDown * *CDraw::pfScreenAspectRatio;
@@ -749,7 +752,7 @@ export void LegacyUpdateVars()
         fPlayerMarkerPos = (94.0f - 5.5f) * fRadarWidthScale;
 }
 
-export void InitLegacy()
+void InitLegacy()
 {
     //Immediate changes
     ReadSettings();

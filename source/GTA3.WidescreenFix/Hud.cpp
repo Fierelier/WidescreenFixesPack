@@ -1,17 +1,16 @@
-module;
-
 #include <stdafx.h>
 #include "common.h"
 #include <callargs.h>
 
-export module Hud;
+#include "Skeleton.h"
+#include "Draw.h"
+#include "Sprite2d.h"
+#include "Camera.h"
 
-import Skeleton;
-import Draw;
-import Sprite2d;
-import Camera;
+namespace
+{
 
-export namespace CHud
+namespace CHud
 {
     GameRef<uint8_t> m_Wants_To_Draw_Hud([]() -> uint8_t*
     {
@@ -111,15 +110,8 @@ public:
 
             pattern = hook::pattern("E8 ? ? ? ? 83 C4 ? E9 ? ? ? ? 8D 84 20 ? ? ? ? FF 74 24");
             CRadar::shShowRadarTrace = safetyhook::create_inline(injector::GetBranchDestination(pattern.get_first()).as_int(), CRadar::ShowRadarTrace);
-
-            //static int SubtitleConstraint = 640;
-            //pattern = hook::pattern("8B 0D ? ? ? ? 89 4C 24 ? 50");
-            //injector::WriteMemory(pattern.get_first(2), &SubtitleConstraint, true);
-            //
-            //onResChange() += [](int Width, int Height)
-            //{
-            //    SubtitleConstraint = Width - (-fWidescreenHudOffset * 2.0f);
-            //};
         };
     }
 } Hud;
+
+}
