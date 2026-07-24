@@ -1,4 +1,4 @@
-if [ "$AR" = "" ]; then AR=i686-w64-mingw32-ar; fi
+if [ "$AR" = "" ]; then AR=i686-w64-mingw32-gcc-ar; fi
 if [ "$CC" = "" ]; then CC=i686-w64-mingw32-gcc; fi
 if [ "$CXX" = "" ]; then CXX=i686-w64-mingw32-g++; fi
 if [ "$J" = "" ]; then J=$(nproc); fi
